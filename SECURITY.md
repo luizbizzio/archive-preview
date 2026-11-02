@@ -1,97 +1,97 @@
 # Security Policy
 
-**Compressed File Preview** is a Windhawk mod that previews and browses compressed archives in the Windows File Explorer Preview Pane (`Alt + P`). It can also open, copy, drag, and extract archived files. Because archives can contain untrusted data and the mod integrates with Windows processes, security reports are taken seriously.
+**Archive Preview** is a Windhawk mod for the Windows File Explorer Preview Pane (`Alt + P`). It lets users browse, open, copy, drag, and extract archive and compressed files, including ZIP, RAR, 7z, and TAR formats.
+
+Archives can contain harmful files or unexpected data. The mod also works with Windows Explorer and Preview Host processes, so security reports are important.
 
 ## Supported versions
 
 | Version | Security support |
 | --- | --- |
-| Latest published stable release | Security reports are accepted, and confirmed issues are addressed on a best-effort basis. |
-| Older releases | Not guaranteed to receive security fixes. Update to a fixed release when available. |
-| Development or stability-test builds | Reports are welcome, but these builds are not considered production-validated. |
+| 1.0.x (after public release) | Reports are accepted. Confirmed issues will be reviewed and fixed on a best-effort basis. |
+| Older releases | Security fixes are not guaranteed. Update when a fixed version is available. |
+| Development or test builds | Reports are welcome, but these builds are not considered production-validated. |
 
-This policy was updated using the **v0.9.3, R91 B23** source revision. That revision is marked **Stability Test**, and its source notes that the patch had **not been compiled or tested on Windows** at the time it was prepared. This policy is not a statement that the build has passed a security audit.
+This policy reflects the **Archive Preview v1.0.0 source (R140 B76)**. Static checks and isolated tests do not replace a full Windows/Windhawk integration test or an independent security review. This policy does not promise that the software has no vulnerabilities.
 
-## Reporting a vulnerability
+## Report a vulnerability
 
-**Do not post security-sensitive details or exploit files in a public issue, discussion, or pull request.**
+**Do not share exploit steps, private files, or security-sensitive details in public issues, discussions, or pull requests.**
 
-1. Open the repository's **Security** tab and use **Report a vulnerability** if private vulnerability reporting is enabled.
-2. Otherwise, use a private contact method listed on the maintainer's GitHub profile.
-3. If no private channel is available, open a public issue asking for a private reporting channel, **without including vulnerability details**.
+1. Open the repository's **Security** tab and choose **Report a vulnerability**, if private vulnerability reporting is enabled.
+2. If that option is not available, use a private contact method listed on the [maintainer's GitHub profile](https://github.com/luizbizzio).
+3. If there is no private contact method, open a public issue asking for a private reporting channel. Do not include the vulnerability details in that issue.
 
-Please include the following when possible:
+When possible, include:
 
-- Mod version and source revision, Windows build, Windhawk version, and relevant archive format.
-- The action involved: preview, browsing, opening, pre-extraction, drag and drop, `Ctrl+C`, manual extraction, installation, or removal.
-- Reproduction steps, expected and actual results, and possible security impact.
-- Whether the issue needs a crafted archive, specific settings, a third-party Shell provider, or user interaction.
-- A minimal proof of concept or test archive shared **privately**, only if needed and safe to provide.
-- Sanitized logs or error details. Remove personal paths, usernames, filenames containing sensitive information, and private document contents.
+- The mod version, Windows build, Windhawk version, and affected archive format.
+- The action involved, such as preview, browsing, opening, drag and drop, `Ctrl + C`, extraction, cache cleanup, installation, or removal.
+- Steps to reproduce the issue, the expected result, what happened, and the possible security impact.
+- Any settings or Windows archive providers needed to reproduce it.
+- Logs with personal data removed. Share proof-of-concept archives only through a private channel when needed.
 
-If user data may be at risk or exploitation is ongoing, make that clear in the report. Ordinary crashes and compatibility problems without a security impact should be reported through GitHub Issues instead.
+For normal bugs, crashes, and feature requests without a security impact, use [GitHub Issues](https://github.com/luizbizzio/archive-preview/issues) instead.
 
-## Security-relevant areas
+## Security areas
 
-Reports are especially useful for issues involving:
+Reports are especially useful for:
 
-- **Archive and destination paths:** path traversal, absolute paths, unsafe names, alternate data streams, symbolic links, junctions, reparse points, or writes outside an intended destination.
-- **Unexpected execution:** opening an executable without a deliberate action, bypassing the mod's EXE confirmation, executing blocked file types, or bypassing Windows attachment protections.
-- **Process and IPC boundaries:** unauthorized requests crossing between `prevhost.exe` and the transfer Broker in `explorer.exe`, named-pipe access control, client checks, or request authorization.
-- **Temporary-file safety:** exposure or modification of staged content, reuse of stale files, unsafe cleanup, or corrupted cache and lease metadata.
-- **Race conditions:** changing archives, staged files, selections, or destinations during validation, extraction, transfer, or cleanup.
-- **Resource exhaustion:** crafted archives that bypass configured size, depth, workspace, or process limits in a way that causes meaningful security impact.
-- **Registration and lifecycle:** unsafe changes to preview-handler associations, unexpected actions during update, uninstall, or Explorer restart.
-- **External components:** exploitable behavior in an invoked Windows Shell archive provider or the Windows `System32\tar.exe` fallback.
+- **Archive paths and extraction:** path traversal, unsafe file names, alternate data streams, symbolic links, junctions, or writes outside the selected destination.
+- **Unexpected execution:** opening or running a program without a clear user action, or bypassing attachment checks and the EXE warning.
+- **Windows processes and IPC:** unauthorized requests between `prevhost.exe` and the broker in `explorer.exe`, including named-pipe access and request checks.
+- **Temporary files and cache:** data exposure, stale or modified files, unsafe cleanup, lease errors, and deletion of files still in use.
+- **Race conditions:** a source archive, selection, path, cache entry, or destination changing while an operation is running.
+- **Resource limits:** archives that bypass size, depth, memory, disk, or process limits.
+- **Installation and removal:** unsafe changes to Windows preview associations or unexpected Explorer restarts.
+- **External providers:** security issues related to Windows Shell archive providers or the Windows `System32\tar.exe` fallback.
 
 ## Security design and limitations
 
-The following describes controls visible in the **R91 B23 source**. These are implementation details, **not guarantees** that every attack is prevented.
+The following describes the v1.0.0 implementation. These controls reduce risk but **do not guarantee that all attacks are prevented**.
 
-- A native preview handler integrates with `prevhost.exe`; a separate Broker inside `explorer.exe` handles privileged file operations.
-- Broker requests use a local named pipe with access restrictions, client process/session checks, preview-window authorization, and bounded request handling.
-- Archive and relative entry paths are validated, and code paths reject unsafe names and reparse points in several file operations.
-- The mod uses Windows Shell archive providers and, when needed, the system `tar.exe`. The fallback extracts selected entry data through bounded output processing rather than directing `tar.exe` to extract an entire archive to an arbitrary path.
-- Prefetch, transfer, and extraction have separate configurable limits. The default global temporary workspace budget is **120 GiB**. Limits reduce some risks but do not guarantee that an archive is safe or that disk use will equal the reported logical size.
-- The mod applies Windows Attachment Manager policy before opening a staged file. Certain dangerous file types are blocked from the mod's Open action. Opening an `.exe` requires an additional confirmation by default; the **Skip EXE confirmation popup** setting disables only that extra confirmation.
-- File transfers and opened files may remain in staging folders for a limited time so other applications can continue using them. A lease expiration is **not proof** that a receiving application has finished using a file.
-- Cancellation is cooperative. A third-party Shell/COM provider may hang inside `explorer.exe` despite the mod's timeouts and cancellation handling.
+- The preview handler runs through Windows Preview Host. A separate broker in `explorer.exe` performs file operations. Requests use bounded IPC and process/client checks.
+- The mod checks archive paths, extracted entry names, file types, and temporary directories. It includes checks for reparse points and uses protected staging paths in several operations.
+- Extraction uses Windows Shell archive providers or a bounded `tar.exe` fallback. Archive support depends on the Windows version and installed providers.
+- Default limits include **2 GiB** for automatic pre-extraction per selection, **30 GiB** for drag/copy/open operations, **60 GiB** for manual extraction, and **160 GiB** for the combined temporary workspace. These are configurable within restricted ranges. A limit does not guarantee that disk use will be exactly equal to the reported file size.
+- **Actions / Skip EXE warning** is **off by default**. The mod normally asks for confirmation before opening an EXE from an archive. Windows security checks may also apply, but UAC, antivirus, and SmartScreen do not guarantee safety.
+- **Security / Allow preview for downloaded archives** is **off by default**. Enabling it may relax a Windows preview security check for supported archives on local fixed drives. It does not remove Mark of the Web or change system-wide policies, and it may not work on every Windows build. Leave it off for archives you do not trust.
+- Active transfers, clipboard files, and certain opened files can keep temporary stages protected. The mod uses cache pins and time-based lease records. An expired lease does not prove that another application has finished using the files.
+- Cancellation is cooperative. A blocked Shell/COM provider can still require restarting File Explorer.
+- There is **no password-entry dialog** for encrypted archives. Some password-protected archives cannot be opened or extracted.
 
-**Opening a compressed archive is not a safe-content guarantee.** Keep Windows and its archive providers updated, and do not run extracted programs from untrusted sources. A file can be dangerous even if extraction succeeds.
+**Previewing an archive does not make its contents safe.** Only open or run extracted programs from sources you trust.
 
 ## Temporary files, logs, and privacy
 
-Starting with the **R91 B23 source**, the relevant paths are:
+The v1.0.0 source still uses **`CompressedFilePreview`** as its internal data-folder name. This is intentional, even though the mod is now named *Archive Preview*.
 
 | Location | Purpose |
 | --- | --- |
+| `%LOCALAPPDATA%\CompressedFilePreview\PrefetchCache` | Automatic pre-extraction |
+| `%LOCALAPPDATA%\CompressedFilePreview\TransferCache` | Temporary data for drag, copy, and opened files |
+| `%LOCALAPPDATA%\CompressedFilePreview\ExtractionWork` | Manual extraction work |
+| `%LOCALAPPDATA%\CompressedFilePreview\StageLeases` | Records used to protect staged files |
 | `%LOCALAPPDATA%\CompressedFilePreview\transfer-broker.log` | Broker diagnostics |
-| `%LOCALAPPDATA%\CompressedFilePreview\PrefetchCache` | Speculative pre-extraction |
-| `%LOCALAPPDATA%\CompressedFilePreview\TransferCache` | Temporary drag, copy, and open-file data |
-| `%LOCALAPPDATA%\CompressedFilePreview\ExtractionWork` | Temporary manual-extraction work |
-| `%LOCALAPPDATA%\CompressedFilePreview\StageLeases` | Persistent staging retention records |
-| `%LOCALAPPDATALOW%\CompressedFilePreview\drag-source.log` | Low-integrity preview drag diagnostics (normally under `AppData\LocalLow`) |
-| `%TEMP%\CompressedFilePreview` | Temporary `.tbz` browsing aliases |
+| `%USERPROFILE%\AppData\LocalLow\CompressedFilePreview\drag-source.log` | Preview Host drag diagnostics |
+| `%TEMP%\CompressedFilePreview` | Temporary `.tbz` aliases |
 
-`%LOCALAPPDATALOW%` above describes the location resolved through Windows **FOLDERID_LocalAppDataLow**; it is not guaranteed to be a defined environment variable on every system.
+The `LocalLow` location is resolved through Windows known folders, so its exact path may differ between systems.
 
-**Compatibility note:** R91 B23 does **not** automatically migrate or delete data from older `NativeArchivePreview` and `ArchivePreviewPane` directories. An older clipboard or Explorer operation might still reference those files. Only review or remove old temporary data when it is no longer in use.
-
-Diagnostic logs may contain local file paths, archive entry names, and operation details. Review and redact them before sharing. Do not post private archives, unsanitized dumps, or confidential staged files publicly. Staging folders are temporary work areas, **not secure long-term storage**. Do not manually delete active stages while another application may be using them.
+Logs may contain local paths, archive entry names, and operation details. Review them and remove private information before sharing. Temporary stages are **not secure long-term storage**. Do not manually delete active cache files while another application may still need them.
 
 ## Disclosure and response
 
-Reports will be reviewed on a **best-effort basis**. There is no guaranteed response time, security-fix deadline, or service-level agreement. Where practical, please coordinate public disclosure so a fix can be prepared and users can update. Reporter credit can be provided with permission.
+Reports are reviewed on a **best-effort basis**. There is no guaranteed response time or fix deadline. When possible, please allow time for a fix before publishing technical details. Reporter credit can be provided with permission.
 
-## Safer use and testing
+## Safer use
 
-- Use the official Windhawk catalog or the project's official source repository, and install the latest stable release.
-- Keep Windows and Windhawk updated, especially when using third-party archive providers.
-- Keep **Skip EXE confirmation popup** disabled unless you understand the risk.
-- Avoid opening or running files from archives you do not trust.
-- Test suspected vulnerabilities only on devices and data you own or are authorized to test.
-- Do not post weaponized archives, private user data, or sensitive proof-of-concept details in public issues.
+- Use an official Windhawk release or the project's source repository.
+- Keep Windows, Windhawk, and archive providers updated.
+- Keep **Skip EXE warning** disabled unless you understand the risk.
+- Keep **Allow preview for downloaded archives** disabled unless you accept the added risk.
+- Avoid opening executables from archives you do not trust.
+- Test security issues only on systems and data you own or are allowed to test.
 
 ## License and third-party components
 
-The reviewed source declares the mod's code under **Apache License 2.0** and retains attribution for MIT-licensed theme-related code adapted from another Windhawk mod. Windows Shell providers and the system `tar.exe` are external components. These licenses and dependencies do not imply a security warranty.
+The mod uses the **Apache License 2.0** and includes attribution for MIT-licensed interface ideas adapted from another Windhawk mod. Windows Shell providers and `tar.exe` are external components. These licenses and dependencies do not provide a security warranty.
