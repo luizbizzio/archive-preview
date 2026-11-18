@@ -17,13 +17,14 @@
 
 // Archive Preview v1.1.0: Windows Shell browsing with optional external GUI extraction.
 // Native transfers use Windows Shell without mod-managed disk staging.
-// Optional external dragging extracts into a private temporary folder.
+// Optional external dragging extracts into a private folder in the mod's storage.
 // Temporary data is retained while transfer objects and streams use it;
-// cleanup may leave files behind if the extractor is still running or deletion fails.
+// the broker retries cleanup after restart when it can verify the folder is idle.
 // Windows Shell providers may also create their own temporary data.
 // Native extraction does not enforce a mod-defined expanded-size limit.
 // Updating the mod never terminates Explorer or Preview Host processes.
-// Close and reopen a File Explorer window if an older preview session persists.
+// An optional setting requests closure of Explorer windows containing an
+// Archive Preview during unload. The DLL waits for COM references to drain.
 
 // ==WindhawkModReadme==
 /*
@@ -31,15 +32,19 @@
 
 ![Archive Preview](https://raw.githubusercontent.com/luizbizzio/archive-preview/main/assets/archive-preview-cover.png)
 
-## English
-
 **Browse, open, copy and extract archives directly in Windows File Explorer.**
 
 Archive Preview is a [Windhawk](https://windhawk.net/) mod that adds archive browsing to File Explorer's **Preview Pane (Alt + P)**.
 
 Browsing uses Windows Shell archive support. Extraction can use Windows or a compatible external program.
 
-### Features
+&nbsp;
+
+---
+
+&nbsp;
+
+## Features
 
 - Browse folders inside supported archives.
 - Open compatible files with their default Windows app. Direct opening of certain potentially dangerous file types is blocked.
@@ -47,13 +52,19 @@ Browsing uses Windows Shell archive support. Extraction can use Windows or a com
 - Drag files and folders into File Explorer or a compatible app.
 - Use **Extract here**, **Extract to…** or **Extract selected**, including selection actions in the item context menu.
 - Choose Windows, automatic external-program detection, 7-Zip, NanaZip or WinRAR for extraction.
-- Click column headers to sort; click again to reverse the order. Sorting starts by name, keeps folders first, and compares dates and sizes by value.
-- Resize columns by dragging their separators. Additional panel width goes to Name.
-- Right-click the headers to show or hide Modified, Type and Size for the session. Name always remains visible.
+- Click column headers to sort. Click again to reverse the order. Sorting starts by name, keeps folders first, and compares dates and sizes by value.
+- Drag a column separator to resize it. Name gets priority when the pane is narrow.
+- Right-click the headers to show or hide Modified, Type and Size. Width and visibility changes are saved automatically.
 - Use light or dark themes, high contrast support and the Windows accent color.
-- Choose Spanish or English for extraction controls and column headers, manually or automatically from the Windows display language.
+- Follow the Windows display language or choose a language for the main preview controls.
 
-### Getting started
+&nbsp;
+
+---
+
+&nbsp;
+
+## Getting started
 
 1. Install and enable the mod in Windhawk.
 2. Open File Explorer and press **Alt + P**.
@@ -62,58 +73,76 @@ Browsing uses Windows Shell archive support. Extraction can use Windows or a com
 
 Double-click to open a folder or compatible file. Use **Back** to return to the parent folder and **Ctrl** or **Shift** to select multiple items.
 
-**Ctrl + Shift + E** extracts the selection while the list has focus. The shortcut can be changed or disabled in settings.
+**Ctrl + Shift + E** runs **Extract selected here** while the list has focus. You can set a shortcut for each extract action in Windhawk.
 
 **Extract to…** initially opens the folder containing the archive.
 
-### Supported formats
+&nbsp;
+
+---
+
+&nbsp;
+
+## Supported formats
 
 The default extensions are **`.zip`, `.rar`, `.7z` and `.tar`**.
 
-Additional extensions can be configured. Experimental options include `.tar.gz`, `.tgz`, `.tbz` and `.tzst`; availability depends on Windows and its archive providers.
+Additional extensions can be configured. Experimental options include `.tar.gz`, `.tgz`, `.tbz` and `.tzst`. Their availability depends on Windows and its archive providers.
 
 Adding an extension or choosing an external extractor does not install a Windows Shell browsing provider. Some compound extensions also require a compatible preview association.
 
-### External extraction and dragging
+&nbsp;
+
+---
+
+&nbsp;
+
+## External extraction and dragging
 
 Windows is the default extraction backend. You can instead select automatic external-program detection, 7-Zip, NanaZip or WinRAR.
 
-Install the program first. Leave its path empty for automatic detection or specify a compatible graphical executable: `7zG.exe`, `NanaZipG.exe`, `NanaZip.Universal.Windows.exe` or `WinRAR.exe`.
+Install the program first. Leave its path empty for automatic detection or specify a compatible graphical executable such as `7zG.exe`, `NanaZipG.exe`, `NanaZip.Universal.Windows.exe` or `WinRAR.exe`.
 
 Extraction actions use the selected backend. External programs provide their own progress, password and overwrite dialogs as supported. External extraction preserves archive paths, including for selected items.
 
-With external dragging enabled and an external backend selected, dragged items are extracted into a private temporary folder before Explorer transfers them to the destination. This requires additional temporary disk space.
+With external dragging enabled and an external backend selected, dragged items are extracted into a private temporary folder in the mod's storage before Explorer transfers them to the destination. This requires additional temporary disk space.
 
-Temporary data is retained while transfer objects and streams use it. Cleanup is attempted when they are released; files can remain if the extractor is still running or deletion fails.
+The mod keeps temporary files while the transfer uses them and tries to remove them when the transfer releases them. The broker checks for leftovers the next time it starts. It keeps folders that are still in use or whose status it cannot confirm.
 
 Disable external dragging to restore native dragging. **Clipboard copy and paste always continue using Windows.** Explorer may still display its own copy window.
 
-### Settings
+&nbsp;
 
-- Archive extensions and an optional exception for previews of local archives marked as downloaded from the Internet. The exception is off by default and does not remove Mark of the Web.
-- Initial visibility of Modified, Type and Size. Header-menu changes apply to the session without saving these preferences.
-- Independent date and size queries for archives of **256 MiB or more in compressed size**, both enabled by default. Disable them if a provider becomes slow. The corresponding column must also be visible; data availability still depends on the provider.
-- Automatic, light or dark theme.
-- Automatic language from Windows, Spanish or English. Other Windows languages fall back to English.
-- Extraction backend, optional executable path and external dragging.
-- Selection extraction shortcut; use `disabled` to turn it off.
+---
 
-Translated setting labels follow Windhawk's language. Controls inside the preview follow the mod's language setting.
+&nbsp;
 
-### Version 1.1.0 improvements
+## Settings
 
-This version adds external extraction, temporary staging for external dragging, translated controls, column sorting and sizing, and a column visibility menu.
+| Group | What you can change |
+| --- | --- |
+| **Files and security** | Archive extensions and the optional preview exception for local downloads. The exception is off by default and keeps Mark of the Web. |
+| **Extraction** | Extraction program, optional program path, and external dragging. |
+| **Appearance** | Theme and preview language. Automatic follows the Windows display language. The preview offers 105 languages and variants. Some messages use English when a translation is unavailable. |
+| **Columns** | Visibility, horizontal scrollbar, and date and size lookups for archives of 256 MiB or more. Windhawk settings take priority over saved column visibility choices. |
+| **Shortcuts** | Four extraction shortcuts. Enter `disabled` to turn a shortcut off. If two actions use the same keys, both shortcuts are disabled until you change one. |
+| **Updates and disabling** | Optionally close Explorer windows that still contain an archive preview when the mod updates, recompiles, or is disabled. This is off by default. Enabling it closes all tabs in each affected window. |
+| **Diagnostics** | Enable detailed logs when reporting a preview or extraction issue. Turn on Windhawk logging to see them. |
 
-It also includes fixes for icons disappearing after selection changes, preview windows intercepting input, interference between preview containers, and archive identity checks before cached content is reused.
+Translated setting labels follow Windhawk's language. The preview language setting applies to the mod's controls. Windows and external extractor dialogs use their own language settings.
 
-Color handling is more consistent between the normal and recovery views. Column layout has been adjusted to fit the visible area and avoid horizontal scrolling.
+&nbsp;
 
-### Important limitations
+---
+
+&nbsp;
+
+## Important limitations
 
 - Browsing and native operations depend on Windows Shell providers. Some archives, compression methods and password-protected files may not work. Native browsing has no mod-provided password dialog.
 - The preview bridge requires the built-in Windows text Preview Handler and compatible associations. It redirects previews at runtime without creating COM preview registrations.
 - Broker operations require a local drive reported as fixed and a path without reparse points, such as symbolic links or junctions. Network locations and drives reported as removable are rejected. A recovery list may sometimes display their contents without supporting open, copy, drag or extraction.
-- Native extraction may remain at 0% before advancing suddenly. External extraction provides an alternative; this Windows behavior has not been fixed.
+- During native extraction, Windows may report 0% until the operation finishes. External programs show progress in their own window.
 - Large archives and stalled providers can delay loading, progress, cancellation or input.
 - Transfers depend on the provider and destination app. Some apps do not accept virtual files.
 - Native extraction has no mod-defined expanded-size limit. Extract only trusted archives.
@@ -122,255 +151,301 @@ Color handling is more consistent between the normal and recovery views. Column 
 - Disabling or updating the mod may wait for workers and preview objects to finish. A stalled provider can prolong the wait indefinitely. The mod never forces a process restart.
 - Components running inside the same Preview Host share that context; providers are not fully isolated from one another.
 
-### Troubleshooting
+&nbsp;
 
-If the preview does not appear, enable **Alt + P**, check the configured extensions, select another file and then retry the archive. After an update, close and reopen the Explorer window if an older preview session persists.
+---
+
+&nbsp;
+
+## Troubleshooting
+
+### The preview does not appear
+
+Press **Alt + P**, check the configured extensions, then select another file and retry the archive.
+
+### Windhawk stays on Uninitializing
+
+Close the Explorer window that showed the preview. You may need to do this manually if the automatic option is off or the pane is already blank.
+
+### An action fails
 
 If an operation fails, try the archive directly in File Explorer. For external extraction, check the selected program and executable path. An external extractor does not replace a missing Windows browsing provider.
 
-If dates or sizes are missing, check column visibility and the large-archive metadata settings. The provider may not supply every value.
+### Dates or sizes are missing
 
-When reporting a problem, include your Windows version, archive format, selected backend, steps and result. Remove private names and paths from Windhawk logs before sharing them.
+Check column visibility and the large-archive metadata settings. The provider may not supply every value.
 
----
+### Report a problem
 
-## Español
+When reporting a problem, include your Windows version, archive format, selected backend, steps and result. Enable Windhawk logging and turn on **Diagnostics > Detailed logs** before reproducing it. Include `[AP lifecycle]` for a slow update or shutdown, `[AP list]` for a list recovery, or `[AP external drag]` for temporary folder cleanup. Remove private names and paths before sharing logs.
 
-**Explora, abre, copia y extrae archivos comprimidos directamente desde el Explorador de Windows.**
-
-Archive Preview es un mod de [Windhawk](https://windhawk.net/) que permite navegar por archivos comprimidos desde el **panel de vista previa (Alt + P)**. Consulta su contenido y trabaja con sus archivos y carpetas sin abrir por separado un gestor de comprimidos.
-
-La navegación utiliza el soporte de archivos comprimidos del Shell de Windows. Para extraer, puedes utilizar Windows o configurar un programa externo compatible.
-
-### Funciones
-
-- **Explorar carpetas:** navega por el contenido del comprimido y vuelve al nivel anterior con el botón Atrás.
-- **Abrir archivos:** haz doble clic en un archivo compatible para abrirlo con su aplicación predeterminada. La apertura directa de determinados tipos potencialmente peligrosos está bloqueada.
-- **Copiar y pegar:** selecciona elementos, pulsa **Ctrl + C** y pégalos en el destino con **Ctrl + V**.
-- **Arrastrar y soltar:** arrastra archivos o carpetas hacia el Explorador o una aplicación compatible.
-- **Extraer:** utiliza **Extraer aquí**, **Extraer en…** o **Extraer selección**. También hay acciones de extracción en el menú contextual de los elementos.
-- **Elegir extractor:** utiliza Windows, la detección automática de un programa externo, 7-Zip, NanaZip o WinRAR.
-- **Ordenar columnas:** pulsa una cabecera para ordenar; vuelve a pulsarla para invertir el sentido. El orden inicial es por nombre, con las carpetas primero. Las fechas y los tamaños se comparan por sus valores.
-- **Ajustar columnas:** arrastra las separaciones entre cabeceras. Al ampliar el panel, el espacio adicional se asigna a Nombre.
-- **Mostrar u ocultar columnas:** haz clic derecho sobre las cabeceras para cambiar la visibilidad de **Modificación**, **Tipo** y **Tamaño** durante la sesión. Nombre permanece visible.
-- **Adaptar el aspecto:** temas claro y oscuro, compatibilidad con alto contraste e integración del color de acento de Windows.
-- **Elegir idioma:** botones, menús de extracción y cabeceras en español o inglés, con selección automática según Windows o selección manual.
-
-### Primeros pasos
-
-1. Instala y activa el mod en Windhawk.
-2. Abre el Explorador de archivos y pulsa **Alt + P**.
-3. Selecciona un archivo comprimido compatible.
-4. Navega por su contenido y elige una acción.
-
-| Acción | Cómo utilizarla |
-| --- | --- |
-| Abrir una carpeta o un archivo compatible | Doble clic |
-| Volver al nivel anterior | Botón Atrás |
-| Seleccionar varios elementos | Ctrl o Mayús al seleccionar |
-| Copiar la selección | Ctrl + C |
-| Pegar en el destino | Ctrl + V |
-| Extraer la selección | Extraer selección o Ctrl + Mayús + E |
-| Elegir una carpeta de extracción | Extraer en… |
-| Extraer junto al comprimido | Extraer aquí |
-| Ordenar la lista | Clic en una cabecera |
-| Mostrar u ocultar columnas | Clic derecho en las cabeceras |
-
-El atajo de extracción solo funciona cuando la lista tiene el foco. Puedes cambiarlo o desactivarlo en los ajustes.
-
-**Extraer en…** abre inicialmente la carpeta que contiene el comprimido.
-
-### Formatos compatibles
-
-Las extensiones predeterminadas son **`.zip`, `.rar`, `.7z` y `.tar`**.
-
-Puedes añadir otras extensiones en los ajustes. Los formatos `.tar.gz`, `.tgz`, `.tbz` y `.tzst` son opciones experimentales y su funcionamiento depende de Windows y del proveedor disponible.
-
-**Añadir una extensión o configurar un extractor externo no incorpora un proveedor de navegación al Shell de Windows.** El mod necesita que Windows pueda explorar el formato. Algunas extensiones compuestas también dependen de una asociación de vista previa compatible.
-
-### Extracción con programas externos
-
-Windows es el extractor predeterminado. En los ajustes puedes seleccionar:
-
-- Detección automática de un programa externo.
-- 7-Zip.
-- NanaZip.
-- WinRAR.
-
-El programa debe estar instalado. Puedes dejar vacía la ruta para utilizar la detección automática o indicar el ejecutable gráfico compatible: `7zG.exe`, `NanaZipG.exe`, `NanaZip.Universal.Windows.exe` o `WinRAR.exe`.
-
-Las acciones de extracción utilizan el backend elegido. Los programas externos muestran sus propios diálogos de progreso, contraseña y sobrescritura, según sus capacidades.
-
-La extracción externa conserva las rutas internas del comprimido, también al extraer una selección.
-
-**Arrastre con extracción externa**
-
-Si esta opción está activada y has seleccionado un extractor externo, el mod prepara la selección en una carpeta temporal y después el Explorador la transfiere al destino.
-
-Esto necesita espacio temporal adicional. El mod conserva esos archivos mientras los objetos de transferencia y sus flujos los utilizan e intenta eliminarlos al liberarse. Pueden quedar temporales si el extractor continúa ejecutándose o no se pueden borrar.
-
-Puedes desactivar esta opción para recuperar el arrastre mediante Windows. **Copiar y pegar por portapapeles sigue utilizando Windows**, independientemente del extractor elegido.
-
-El Explorador puede mostrar su propia ventana de copia además del progreso del extractor.
-
-### Ajustes
-
-- **Extensiones:** tipos de archivos que activan la vista previa.
-- **Vista previa de archivos procedentes de Internet:** excepción opcional para determinados comprimidos locales; desactivada por defecto. No elimina la marca de procedencia de Internet.
-- **Columnas:** visibilidad inicial de Modificación, Tipo y Tamaño. El menú de cabeceras permite cambios de sesión sin guardar estas preferencias.
-- **Metadatos en comprimidos grandes:** consultas independientes de fechas y tamaños para comprimidos de **256 MiB o más de tamaño comprimido**, activadas por defecto. Puedes desactivarlas si ralentizan un proveedor. Para consultar cada dato, su columna también debe estar visible; mostrarla no garantiza que el proveedor disponga del dato.
-- **Tema:** automático, claro u oscuro.
-- **Idioma del mod:** automático según Windows, español o inglés. Otros idiomas de Windows utilizan inglés.
-- **Programa de extracción:** Windows o un programa externo compatible.
-- **Arrastre externo:** utiliza el extractor externo al arrastrar elementos.
-- **Ruta del extractor:** ubicación opcional del ejecutable.
-- **Atajo de extracción:** combinación para extraer la selección; utiliza `disabled` para desactivarla.
-
-El idioma de los ajustes traducidos depende de Windhawk. El idioma de la interfaz dentro del panel se controla mediante el ajuste de idioma del mod.
-
-### Mejoras de la versión 1.1.0
-
-Esta versión incorpora opciones de extracción externa, arrastre con preparación temporal, traducción de controles, ordenación y ajuste de columnas, y un menú para cambiar su visibilidad.
-
-También incluye correcciones para conservar los iconos al cambiar de selección, recuperar la interacción cuando otra ventana de vista previa intercepta los clics, evitar interferencias entre paneles y comprobar mejor la identidad del comprimido antes de reutilizar contenido.
-
-Se ha revisado la coherencia de colores entre la vista normal y la de recuperación, así como el ajuste de columnas al área visible para evitar el desplazamiento horizontal.
-
-### Limitaciones importantes
-
-- **Dependencia de Windows:** la navegación y las operaciones nativas dependen del proveedor del Shell. Algunos formatos, métodos de compresión o archivos protegidos pueden no funcionar. El mod no incorpora su propio diálogo de contraseña para la navegación nativa.
-- **Compatibilidad de la vista previa:** se necesita el manejador de vista previa de texto integrado de Windows y asociaciones compatibles. El mod redirige la vista previa durante la ejecución sin crear registros COM de vista previa.
-- **Ubicación del comprimido:** las operaciones del intermediario requieren una unidad local que Windows identifique como fija y una ruta sin puntos de reanálisis, como enlaces simbólicos o uniones. Las rutas de red y las unidades identificadas como extraíbles no están admitidas para esas operaciones. En algunos casos, la lista de recuperación puede mostrar contenido sin permitir abrir, copiar, arrastrar o extraer.
-- **Progreso de Windows:** la extracción nativa puede permanecer en 0 % durante un tiempo y avanzar después de golpe. La extracción externa es una alternativa; este comportamiento de Windows no se considera corregido.
-- **Archivos grandes:** un proveedor puede tardar o bloquearse dentro de una llamada del sistema. El progreso y la cancelación pueden no responder inmediatamente.
-- **Aplicaciones de destino:** las transferencias dependen de las capacidades del proveedor y de la aplicación receptora. Algunas aplicaciones no aceptan archivos virtuales.
-- **Extracción de confianza:** el backend nativo no impone un límite propio al tamaño descomprimido. Un archivo pequeño puede expandirse hasta ocupar mucho espacio.
-- **Fechas de carpetas ZIP:** cuando no existe una fecha almacenada para una carpeta, puede mostrarse una fecha derivada de su contenido.
-- **Selección:** las solicitudes de transferencia admiten hasta **4.096 elementos seleccionados**.
-- **Desactivación y actualización:** Windhawk puede esperar a que terminen operaciones y se liberen objetos de vista previa. Un proveedor bloqueado puede prolongar esa espera. El mod no fuerza el cierre ni el reinicio de procesos.
-- **Aislamiento:** los componentes que se ejecutan dentro del mismo Preview Host comparten ese contexto; el mod no aísla por completo cada proveedor.
-
-### Solución de problemas
-
-**No aparece la vista previa**
-
-Comprueba que el panel está activado con **Alt + P** y que la extensión figura en los ajustes. Selecciona otro archivo y vuelve al comprimido para reintentar. Después de actualizar el mod, cierra y vuelve a abrir la ventana del Explorador si persiste una sesión anterior.
-
-**No se puede abrir, copiar o extraer**
-
-Prueba el mismo comprimido directamente en el Explorador. Si utilizas extracción externa, comprueba el programa seleccionado y la ruta de su ejecutable. Configurar un extractor externo no resuelve la falta de un proveedor de navegación de Windows.
-
-**Faltan fechas o tamaños**
-
-Comprueba la visibilidad de la columna y las opciones de metadatos para comprimidos grandes. Algunos proveedores no suministran todos los datos.
-
-**Comunicar un problema**
-
-Indica la versión de Windows, el formato del comprimido, el backend seleccionado, los pasos realizados y el resultado. Los registros de Windhawk pueden incluir nombres y rutas: elimina los datos privados antes de compartirlos.
+&nbsp;
 
 ---
 
-## Proyecto / Project
+&nbsp;
 
-- **Código fuente / Source:** [GitHub](https://github.com/luizbizzio/archive-preview)
-- **Incidencias / Issues:** [GitHub Issues](https://github.com/luizbizzio/archive-preview/issues)
-- **Autor original / Original author:** [Luiz Bizzio](https://github.com/luizbizzio)
-- **Modificaciones de la versión 1.1.0 / Version 1.1.0 modifications:** Dizse
-- **Versión / Version:** 1.1.0
-- **Licencia / License:** [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+## Author and license
 
----
+Created by **[Luiz Bizzio](https://github.com/luizbizzio)** and licensed under **Apache License 2.0**.
+
+[Source code](https://github.com/luizbizzio/archive-preview) · [Report an issue](https://github.com/luizbizzio/archive-preview/issues) · [License](https://github.com/luizbizzio/archive-preview/blob/main/LICENSE)
 
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
-- ArchiveExtensions: ".zip,.rar,.7z,.tar"
-  $name: Archive extensions
-  $name:es: Extensiones de archivos comprimidos
-  $description: Comma-separated extensions. A compatible Windows Shell provider is required.
-  $description:es: Extensiones separadas por comas. Requieren un proveedor compatible del Shell de Windows.
-- AutoAllowInternetArchivePreview: false
-  $name: Allow previews of archives marked as downloaded from the Internet
-  $name:es: Permitir vista previa de archivos marcados como procedentes de Internet
-  $description: Optional scoped exception for local archives. Disabled by default.
-  $description:es: Excepción opcional y limitada para archivos comprimidos locales. Desactivada de forma predeterminada.
-- HideDateModified: false
-  $name: Hide the Date modified column
-  $name:es: Ocultar la columna de fecha de modificación
-- HideType: false
-  $name: Hide the Type column
-  $name:es: Ocultar la columna de tipo
-- HideSize: false
-  $name: Hide the Size column
-  $name:es: Ocultar la columna de tamaño
-- ReadLargeArchiveDates: true
-  $name: Read modification dates in large archives
-  $name:es: Consultar fechas en comprimidos grandes
-  $description: Applies from 256 MiB of compressed archive size. Disable to avoid optional date queries that can slow some providers. The date column must also be visible.
-  $description:es: Se aplica a comprimidos de 256 MiB o más. Desactívalo para evitar consultas de fechas que pueden ralentizar algunos proveedores. La columna de modificación también debe estar visible.
-- ReadLargeArchiveSizes: true
-  $name: Read file sizes in large archives
-  $name:es: Consultar tamaños en comprimidos grandes
-  $description: Applies from 256 MiB of compressed archive size. Disable to avoid optional size queries that can slow some providers. The size column must also be visible.
-  $description:es: Se aplica a comprimidos de 256 MiB o más. Desactívalo para evitar consultas de tamaños que pueden ralentizar algunos proveedores. La columna de tamaño también debe estar visible.
-- ThemeMode: auto
-  $name: Theme
-  $name:es: Tema
-  $options:
-  - auto: Automatic
-  - light: Light
-  - dark: Dark
-  $options:es:
-  - auto: Automático
-  - light: Claro
-  - dark: Oscuro
-- Language: auto
-  $name: Extraction button and menu language
-  $name:es: Idioma de los botones y menús de extracción
-  $description: Automatic follows the Windows display language. Spanish and English are available; other languages use English.
-  $description:es: Automático sigue el idioma de Windows. Los idiomas disponibles son español e inglés; otros idiomas usan inglés.
-  $options:
-  - auto: Automatic (Windows)
-  - es: Spanish
-  - en: English
-  $options:es:
-  - auto: Automático (Windows)
-  - es: Español
-  - en: Inglés
-- ExtractionBackend: windows
-  $name: Extraction program
-  $name:es: Programa de extracción
-  $description: External programs show their own progress, password and overwrite dialogs. Install the selected program first. External extraction preserves archive paths, including when extracting selected items.
-  $description:es: Los programas externos muestran sus propias ventanas de progreso, contraseñas y sobrescritura. Instala primero el programa elegido. La extracción externa conserva las rutas del archivo, también al extraer una selección.
-  $options:
-  - windows: Windows (original)
-  - auto: External - automatic detection
-  - 7zip: 7-Zip
-  - nanazip: NanaZip
-  - winrar: WinRAR
-  $options:es:
-  - windows: Windows (original)
-  - auto: Externo - detectar automáticamente
-  - 7zip: 7-Zip
-  - nanazip: NanaZip
-  - winrar: WinRAR
-- ExternalDragExtraction: true
-  $name: Use the selected external program when dragging files
-  $name:es: Usar el programa externo al arrastrar archivos
-  $description: Extracts the dragged selection to a temporary folder, then Explorer copies it to the drop destination. Requires extra temporary disk space. Clipboard copy/paste continues using Windows. Disable to restore native dragging.
-  $description:es: Extrae la selección a una carpeta temporal y después el Explorador la copia al destino donde se suelte. Necesita espacio temporal adicional. Copiar y pegar sigue usando Windows. Desactívalo para recuperar el arrastre original.
-- ExternalExtractorPath: ""
-  $name: External program path (optional)
-  $name:es: Ruta del programa externo (opcional)
-  $description: Leave empty for automatic detection. Otherwise enter the full path to 7zG.exe, NanaZipG.exe, NanaZip.Universal.Windows.exe or WinRAR.exe. Use the graphical extraction executable, not the file manager or console program.
-  $description:es: Déjalo vacío para detectar el programa. También puedes indicar la ruta completa a 7zG.exe, NanaZipG.exe, NanaZip.Universal.Windows.exe o WinRAR.exe. Usa el ejecutable gráfico de extracción, no el gestor de archivos ni el de consola.
-- ExtractSelectedShortcut: "ctrl+shift+e"
-  $name: Extract selection shortcut
-  $name:es: Atajo para extraer la selección
-  $description: Use disabled to disable the shortcut.
-  $description:es: Usa disabled para desactivarlo.
+- FilesAndSecurity:
+    - ArchiveExtensions: ".zip,.rar,.7z,.tar"
+      $name: Archive extensions
+      $name:es: Extensiones de archivos comprimidos
+      $description: Comma-separated extensions. A compatible Windows Shell provider is required.
+      $description:es: Extensiones separadas por comas. Requieren un proveedor compatible del Shell de Windows.
+    - AutoAllowInternetArchivePreview: false
+      $name: Allow previews of archives marked as downloaded from the Internet
+      $name:es: Permitir vista previa de archivos marcados como procedentes de Internet
+      $description: Optional scoped exception for local archives. Disabled by default.
+      $description:es: Excepción opcional y limitada para archivos comprimidos locales. Desactivada de forma predeterminada.
+  $name: Files and security
+  $name:es: Archivos y seguridad
+  $name:pt: Arquivos e segurança
+- Extract:
+    - ExtractionBackend: windows
+      $name: Extraction program
+      $name:es: Programa de extracción
+      $description: External programs show their own progress, password and overwrite dialogs. Install the selected program first. External extraction preserves archive paths, including when extracting selected items.
+      $description:es: Los programas externos muestran sus propias ventanas de progreso, contraseñas y sobrescritura. Instala primero el programa elegido. La extracción externa conserva las rutas del archivo, también al extraer una selección.
+      $options:
+      - windows: Windows (original)
+      - auto: External - automatic detection
+      - 7zip: 7-Zip
+      - nanazip: NanaZip
+      - winrar: WinRAR
+      $options:es:
+      - windows: Windows (original)
+      - auto: Externo - detectar automáticamente
+      - 7zip: 7-Zip
+      - nanazip: NanaZip
+      - winrar: WinRAR
+    - ExternalExtractorPath: ""
+      $name: External program path (optional)
+      $name:es: Ruta del programa externo (opcional)
+      $description: Leave empty for automatic detection. Otherwise enter the full path to 7zG.exe, NanaZipG.exe, NanaZip.Universal.Windows.exe or WinRAR.exe. Use the graphical extraction executable, not the file manager or console program.
+      $description:es: Déjalo vacío para detectar el programa. También puedes indicar la ruta completa a 7zG.exe, NanaZipG.exe, NanaZip.Universal.Windows.exe o WinRAR.exe. Usa el ejecutable gráfico de extracción, no el gestor de archivos ni el de consola.
+      #! $hideIf: {ExtractionBackend: windows}
+    - ExternalDragExtraction: true
+      $name: Use the selected external program when dragging files
+      $name:es: Usar el programa externo al arrastrar archivos
+      $description: Extracts the dragged selection to a temporary folder, then Explorer copies it to the drop destination. Requires extra temporary disk space. Clipboard copy/paste continues using Windows. Disable to restore native dragging.
+      $description:es: Extrae la selección a una carpeta temporal y después el Explorador la copia al destino donde se suelte. Necesita espacio temporal adicional. Copiar y pegar sigue usando Windows. Desactívalo para recuperar el arrastre original.
+      #! $hideIf: {ExtractionBackend: windows}
+  $name: Extraction
+  $name:es: Extracción
+  $name:pt: Extração
+- Preview:
+    - ThemeMode: auto
+      $name: Theme
+      $name:es: Tema
+      $options:
+      - auto: Automatic
+      - light: Light
+      - dark: Dark
+      $options:es:
+      - auto: Automático
+      - light: Claro
+      - dark: Oscuro
+    - Language: auto
+      $name: Preview language
+      $name:es: Idioma de la vista previa
+      $name:pt: Idioma do painel de visualização
+      $description: Automatic uses the Windows display language when available.
+      $description:es: Automático usa el idioma de pantalla de Windows cuando está disponible.
+      $description:pt: O modo automático usa o idioma de exibição do Windows quando disponível.
+      $options:
+      - auto: Automatic (Windows)
+      - af: "Afrikaans"
+      - am: "አማርኛ"
+      - ar: "العربية"
+      - as: "অসমীয়া"
+      - az: "Azərbaycanca"
+      - be: "Беларуская"
+      - bg: "Български"
+      - bn: "বাংলা"
+      - bs: "Bosanski"
+      - ca: "Català"
+      - chr: "ᏣᎳᎩ"
+      - cs: "Čeština"
+      - cy: "Cymraeg"
+      - da: "Dansk"
+      - de: "Deutsch"
+      - el: "Ελληνικά"
+      - en: "English"
+      - es: "Español"
+      - et: "Eesti"
+      - eu: "Euskara"
+      - fa: "فارسی"
+      - fi: "Suomi"
+      - fil: "Filipino"
+      - fr: "Français"
+      - ga: "Gaeilge"
+      - gd: "Gàidhlig"
+      - gl: "Galego"
+      - gu: "ગુજરાતી"
+      - ha: "Hausa"
+      - he: "עברית"
+      - hi: "हिन्दी"
+      - hr: "Hrvatski"
+      - hu: "Magyar"
+      - hy: "Հայերեն"
+      - id: "Bahasa Indonesia"
+      - ig: "Igbo"
+      - is: "Íslenska"
+      - it: "Italiano"
+      - iu-Latn: "Inuktitut (Latin)"
+      - ja: "日本語"
+      - ka: "ქართული"
+      - kk: "Қазақша"
+      - km: "ខ្មែរ"
+      - kn: "ಕನ್ನಡ"
+      - ko: "한국어"
+      - kok: "कोंकणी"
+      - ku-Arab: "کوردی (سۆرانی)"
+      - ky: "Кыргызча"
+      - lb: "Lëtzebuergesch"
+      - lo: "ລາວ"
+      - lt: "Lietuvių"
+      - lv: "Latviešu"
+      - mi: "Māori"
+      - mk: "Македонски"
+      - ml: "മലയാളം"
+      - mn: "Монгол"
+      - mr: "मराठी"
+      - ms: "Bahasa Melayu"
+      - mt: "Malti"
+      - nb: "Norsk bokmål"
+      - ne: "नेपाली"
+      - nl: "Nederlands"
+      - nn: "Norsk nynorsk"
+      - nso: "Sesotho sa Leboa"
+      - or: "ଓଡ଼ିଆ"
+      - pa: "ਪੰਜਾਬੀ (ਗੁਰਮੁਖੀ)"
+      - pa-Arab: "پنجابی (شاہ مکھی)"
+      - pl: "Polski"
+      - prs: "دری"
+      - pt-BR: "Português (Brasil)"
+      - pt-PT: "Português (Portugal)"
+      - quc: "K’iche’"
+      - quz: "Runasimi"
+      - ro: "Română"
+      - ru: "Русский"
+      - rw: "Ikinyarwanda"
+      - sd-Arab: "سنڌي"
+      - si: "සිංහල"
+      - sk: "Slovenčina"
+      - sl: "Slovenščina"
+      - sq: "Shqip"
+      - sr-Cyrl: "Српски (ћирилица)"
+      - sr-Latn: "Srpski (latinica)"
+      - sv: "Svenska"
+      - sw: "Kiswahili"
+      - ta: "தமிழ்"
+      - te: "తెలుగు"
+      - tg: "Тоҷикӣ"
+      - th: "ไทย"
+      - ti: "ትግርኛ"
+      - tk: "Türkmençe"
+      - tn: "Setswana"
+      - tr: "Türkçe"
+      - tt: "Татарча"
+      - ug: "ئۇيغۇرچە"
+      - uk: "Українська"
+      - ur: "اردو"
+      - uz: "O‘zbekcha"
+      - vi: "Tiếng Việt"
+      - wo: "Wolof"
+      - xh: "isiXhosa"
+      - yo: "Yorùbá"
+      - zh-Hans: "简体中文"
+      - zh-Hant: "繁體中文"
+      - zu: "isiZulu"
+  $name: Appearance
+  $name:es: Apariencia
+  $name:pt: Aparência
+- DisplayColumns:
+    - HideDateModified: false
+      $name: Hide the Date modified column
+      $name:es: Ocultar la columna de fecha de modificación
+    - HideType: false
+      $name: Hide the Type column
+      $name:es: Ocultar la columna de tipo
+    - HideSize: false
+      $name: Hide the Size column
+      $name:es: Ocultar la columna de tamaño
+    - HideHorizontalScrollbar: false
+      $name: Hide horizontal scrollbar
+      $name:es: Ocultar la barra de desplazamiento horizontal
+      $description: Show fewer columns when the pane is too narrow to fit them.
+      $description:es: Muestra menos columnas cuando el panel es demasiado estrecho.
+    - ReadLargeArchiveDates: false
+      $name: Read modification dates in large archives
+      $name:es: Consultar fechas en comprimidos grandes
+      $description: Applies from 256 MiB of compressed archive size. Enable if you need to see dates for these archives. Queries can slow some providers. The date column must also be visible.
+      $description:es: Se aplica a comprimidos de 256 MiB o más. Actívalo si necesitas ver los datos de fechas. Las consultas pueden ralentizar algunos proveedores. La columna de modificación también debe estar visible.
+    - ReadLargeArchiveSizes: false
+      $name: Read file sizes in large archives
+      $name:es: Consultar tamaños en comprimidos grandes
+      $description: Applies from 256 MiB of compressed archive size. Enable if you need to see sizes for these archives. Queries can slow some providers. The size column must also be visible.
+      $description:es: Se aplica a comprimidos de 256 MiB o más. Actívalo si necesitas ver los datos de tamaños. Las consultas pueden ralentizar algunos proveedores. La columna de tamaño también debe estar visible.
+  $name: Columns
+  $name:es: Columnas
+  $name:pt: Colunas
+- KeyBindings:
+    - ExtractHereShortcut: "disabled"
+      $name: Extract here shortcut
+      $name:es: Atajo para extraer aquí
+      $description: Enter a shortcut such as ctrl+alt+e, or use disabled to turn it off.
+      $description:es: Escribe un atajo como ctrl+alt+e o usa disabled para desactivarlo.
+    - ExtractToShortcut: "disabled"
+      $name: Extract to shortcut
+      $name:es: Atajo para extraer en una carpeta
+      $description: Enter a shortcut such as ctrl+alt+t, or use disabled to turn it off.
+      $description:es: Escribe un atajo como ctrl+alt+t o usa disabled para desactivarlo.
+    - ExtractSelectedShortcut: "ctrl+shift+e"
+      $name: Extract selected here shortcut
+      $name:es: Atajo para extraer la selección aquí
+      $description: Enter a shortcut such as ctrl+shift+e, or use disabled to turn it off.
+      $description:es: Escribe un atajo como ctrl+shift+e o usa disabled para desactivarlo.
+    - ExtractSelectedToShortcut: "disabled"
+      $name: Extract selected to shortcut
+      $name:es: Atajo para extraer la selección en una carpeta
+      $description: Enter a shortcut such as ctrl+shift+t, or use disabled to turn it off.
+      $description:es: Escribe un atajo como ctrl+shift+t o usa disabled para desactivarlo.
+  $name: Shortcuts
+  $name:es: Atajos
+  $name:pt: Atalhos
+- ModLifecycle:
+    - CloseExplorerWindowOnUnload: false
+      $name: Close Explorer windows with an archive preview
+      $name:es: Cerrar ventanas del Explorador con una vista previa
+      $name:pt: Fechar janelas do Explorador com uma prévia
+      $description: When you update, recompile or disable the mod, Explorer closes windows that still contain an Archive Preview, including all tabs in those windows.
+      $description:es: Al actualizar, recompilar o desactivar el mod, el Explorador cierra las ventanas que aún contienen una vista previa del mod, incluidas todas sus pestañas.
+      $description:pt: Ao atualizar, recompilar ou desativar o mod, o Explorador fecha as janelas que ainda contêm uma prévia do mod, incluindo todas as abas dessas janelas.
+  $name: Updates and disabling
+  $name:es: Actualizaciones y desactivación
+  $name:pt: Atualizações e desativação
+- Diagnostics:
+    - DetailedLogs: false
+      $name: Detailed logs
+      $name:es: Registros detallados
+      $name:pt: Logs detalhados
+      $description: Collect extra details about previews and extraction. Enable Windhawk logging to see them.
+      $description:es: Recopila más detalles sobre las vistas previas y la extracción. Activa los registros de Windhawk para verlos.
+      $description:pt: Coleta mais detalhes sobre prévias e extração. Ative os logs do Windhawk para vê-los.
+  $name: Diagnostics
+  $name:es: Diagnóstico
+  $name:pt: Diagnóstico
 */
 // ==/WindhawkModSettings==
 
@@ -398,12 +473,14 @@ Indica la versión de Windows, el formato del comprimido, el backend seleccionad
 #include <propkey.h>
 #include <psapi.h>
 #include <sddl.h>
+#include <aclapi.h>
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <memory>
 #include <new>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <cmath>
 #include <cwchar>
@@ -450,6 +527,11 @@ static HANDLE Start(LPTHREAD_START_ROUTINE callback,void * context) {
     records = record.release();
     return thread;
 }
+static size_t CountRecords(const Record * record) {
+    size_t count = 0;
+    for (; record; record = record->next) ++count;
+    return count;
+}
 static void JoinAll() {
     Record * current = nullptr;
     {
@@ -458,6 +540,8 @@ static void JoinAll() {
         current = records;
         records = nullptr;
     }
+    const ULONGLONG started = GetTickCount64();
+    Wh_Log(L"[AP lifecycle] phase=workers-join-begin tracked=%zu",CountRecords(current));
     while(current){
         Record * next = current->next;
         // Synchronous pipe reads are cancellable. Third-party synchronous
@@ -467,21 +551,30 @@ static void JoinAll() {
             const DWORD result = WaitForSingleObject(current->thread,30000);
             if(result == WAIT_OBJECT_0)break;
             if(result == WAIT_TIMEOUT){
-                Wh_Log(L"ArchivePreview unload: waiting for a live background Shell/IPC worker");
+                Wh_Log(L"[AP lifecycle] phase=worker-wait worker_tid=%lu elapsed_ms=%llu",
+                    GetThreadId(current->thread),GetTickCount64() - started);
                 CancelSynchronousIo(current->thread);
                 continue;
             }
             // A failed wait is not proof the worker has ended. Preserve code
             // safety rather than returning to Windhawk with live callbacks.
-            Wh_Log(L"ArchivePreview unload: worker wait failed (Win32=%lu)",GetLastError());
+            const DWORD error = GetLastError();
+            Wh_Log(L"[AP lifecycle] phase=worker-wait-failed win32=%lu worker_tid=%lu",
+                error,GetThreadId(current->thread));
             Sleep(100);
         }
         CloseHandle(current->thread);
         delete current;
         current = next;
     }
+    Wh_Log(L"[AP lifecycle] phase=workers-joined elapsed_ms=%llu",GetTickCount64() - started);
 }
 } // namespace ArchivePreviewWorkerLifetime
+
+namespace ArchivePreviewText {
+    static void LoadLanguage();
+    static UINT TextDirection();
+}
 
 // Shared Windows 11-inspired button paint and hover handling.  These are
 // owner-drawn Win32 buttons, not WinUI controls: keep native keyboard focus,
@@ -605,7 +698,7 @@ namespace ArchivePreviewButtons {
             }
         } else if (caption.right > caption.left) {
             DrawTextW(dc,label, - 1, & caption,DT_SINGLELINE | DT_VCENTER |
-                DT_CENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
+                DT_CENTER | DT_END_ELLIPSIS | DT_NOPREFIX | ArchivePreviewText::TextDirection());
         }
         SetTextColor(dc,oldText);
         SetBkMode(dc,oldMode);
@@ -632,22 +725,55 @@ namespace ArchivePreviewButtons {
     }
 }
 
-// Each injected process loads its own settings. Diagnostics go to Windhawk's
-// built-in logger. No custom log files or per-mod logging switch are used.
+namespace ArchivePreviewDiagnostics {
+    static std::atomic<bool> detailedLogs{false};
+
+    static void Load() {
+        detailedLogs.store(Wh_GetIntSetting(L"Diagnostics.DetailedLogs") != 0,
+                           std::memory_order_relaxed);
+    }
+
+    static bool Enabled() {
+        return detailedLogs.load(std::memory_order_relaxed);
+    }
+}
+
+namespace ArchivePreviewSettings {
+    static std::wstring ReadText(PCWSTR key) {
+        PCWSTR setting = Wh_GetStringSetting(key);
+        if (!setting) return {};
+        std::wstring value(setting);
+        Wh_FreeStringSetting(setting);
+        return value;
+    }
+}
+
+// Each injected process loads its own settings.
 namespace ArchivePreviewOptions {
     static std::atomic < bool > autoAllowInternetArchivePreview{false};
     static std::atomic < int > themeMode{0}; // 0 auto, 1 light, 2 dark
-    static std::atomic < int > uiLanguage{0}; // 0 Windows, 1 Spanish, 2 English
-    static std::atomic < bool > showDate{true};
-    static std::atomic < bool > showType{true};
-    static std::atomic < bool > showSize{true};
-    static std::atomic<bool> readLargeDates{true};
-    static std::atomic<bool> readLargeSizes{true};
+    static std::atomic<unsigned> visibleColumns{0xF};
+    static std::atomic<bool> hideHorizontalScrollbar{false};
+    static std::atomic<bool> closeExplorerWindowOnUnload{false};
+    static bool ShowColumn(int kind) {
+        return (visibleColumns.load() & (1u << kind)) != 0;
+    }
+    static std::atomic<unsigned> largeMetadataMask{0};
     static constexpr ULONGLONG kLargeMetadataThreshold = 256ULL * 1024 * 1024;
+    struct MetadataPolicy {
+        unsigned visibleMask;
+        unsigned largeMask;
+        unsigned ForArchive(ULONGLONG archiveBytes) const {
+            return archiveBytes >= kLargeMetadataThreshold ? visibleMask & largeMask : visibleMask;
+        }
+    };
+    static MetadataPolicy MetadataSnapshot() {
+        const unsigned columns = visibleColumns.load();
+        return {((columns & 0b0010) ? 1u : 0u) | ((columns & 0b1000) ? 2u : 0u),
+            largeMetadataMask.load()};
+    }
     static unsigned MetadataMask(ULONGLONG archiveBytes) {
-        const bool large = archiveBytes >= kLargeMetadataThreshold;
-        return (showDate.load() && (!large || readLargeDates.load())?1u:0u) |
-            (showSize.load() && (!large || readLargeSizes.load())?2u:0u);
+        return MetadataSnapshot().ForArchive(archiveBytes);
     }
     struct ExtractionOptions {
         int backend{}; // 0 Windows, 1 auto, 2 7-Zip, 3 NanaZip, 4 WinRAR
@@ -668,7 +794,15 @@ namespace ArchivePreviewOptions {
     static constexpr unsigned kShortcutShift = 0x400;
     static constexpr unsigned kShortcutWin = 0x800;
     static constexpr unsigned kShortcutMods = 0xF00;
-    static std::atomic < unsigned > extractSelectedShortcut{kShortcutCtrl | kShortcutShift | 'E'};
+    enum class ExtractAction { Here, To, SelectedHere, SelectedTo, None };
+    static constexpr std::array<PCWSTR,4> kExtractShortcutSettings{
+        L"KeyBindings.ExtractHereShortcut",
+        L"KeyBindings.ExtractToShortcut",
+        L"KeyBindings.ExtractSelectedShortcut",
+        L"KeyBindings.ExtractSelectedToShortcut",
+    };
+    static std::array<unsigned,kExtractShortcutSettings.size()> extractShortcuts{};
+    static std::mutex extractShortcutsMutex;
 
     static std::wstring ShortcutTrimLower(std::wstring value) {
         const size_t first = value.find_first_not_of(L" \t\r\n");
@@ -681,7 +815,7 @@ namespace ArchivePreviewOptions {
     }
     // Returns 0 on disabled OR invalid input. Invalid input never silently
     // reverts to the default and triggers a shortcut the user did not choose.
-    static unsigned ParseExtractSelectedShortcut(std::wstring text) {
+    static unsigned ParseExtractShortcut(std::wstring text) {
         text = ShortcutTrimLower(std::move(text));
         if (text.empty() || text == L"disabled" || text == L"none") return 0;
         if (text == L"ctrl_shift_e") return kShortcutCtrl | kShortcutShift | 'E';
@@ -714,8 +848,8 @@ namespace ArchivePreviewOptions {
                 else if (part.size() >= 2 && part[0] == L'f') {
                     const std::wstring number = part.substr(1);
                     if (number.empty() || number.find_first_not_of(L"0123456789") != std::wstring::npos) return 0;
-                    const int index = _wtoi(number.c_str());
-                    if (index >= 1 && index <= 24) virtualKey = static_cast < unsigned > (VK_F1 + index - 1);
+                    const auto index = std::wcstoul(number.c_str(),nullptr,10);
+                    if (index >= 1 && index <= 24) virtualKey = static_cast<unsigned>(VK_F1 + index - 1);
                 } else if (part == L"space") virtualKey = VK_SPACE;
                 else if (part == L"tab") virtualKey = VK_TAB;
                 else if (part == L"enter" || part == L"return") virtualKey = VK_RETURN;
@@ -748,16 +882,57 @@ namespace ArchivePreviewOptions {
             return 0;
         return modifiers | virtualKey;
     }
-    static bool MatchesExtractSelectedShortcut(WPARAM key) {
-        const unsigned desired = extractSelectedShortcut.load(std::memory_order_relaxed);
-        if (!desired || static_cast < unsigned > (key) != (desired & 0xFF)) return false;
-        unsigned current = 0;
+    static bool ConflictsWithPreviewShortcut(unsigned binding) {
+        const unsigned key = binding & 0xFF;
+        const unsigned mods = binding & kShortcutMods;
+        if (key == VK_BACK || key == VK_RETURN || key == VK_RIGHT || key == VK_APPS) return true;
+        if (key == VK_LEFT && (mods & kShortcutAlt)) return true;
+        if (key == VK_F10 && mods == kShortcutShift) return true;
+        if ((mods & kShortcutCtrl) && (key == 'A' || key == 'C' || key == VK_NEXT || key == VK_PRIOR))
+            return true;
+        return key == 'G' && (mods & (kShortcutCtrl | kShortcutShift)) == (kShortcutCtrl | kShortcutShift);
+    }
+    static void LoadExtractShortcuts() {
+        std::array<unsigned,kExtractShortcutSettings.size()> shortcuts{};
+        for (size_t i = 0; i < shortcuts.size(); ++i) {
+            const auto setting = kExtractShortcutSettings[i];
+            const auto text = ShortcutTrimLower(ArchivePreviewSettings::ReadText(setting));
+            shortcuts[i] = ParseExtractShortcut(text);
+            if (!shortcuts[i] && !text.empty() && text != L"disabled" && text != L"none")
+                Wh_Log(L"Invalid %s setting; shortcut disabled",setting);
+            if (shortcuts[i] && ConflictsWithPreviewShortcut(shortcuts[i])) {
+                Wh_Log(L"%s conflicts with a preview shortcut; extraction shortcut disabled",setting);
+                shortcuts[i] = 0;
+            }
+        }
+        auto resolved = shortcuts;
+        for (size_t i = 0; i < shortcuts.size(); ++i) {
+            if (!shortcuts[i]) continue;
+            for (size_t j = i + 1; j < shortcuts.size(); ++j) {
+                if (shortcuts[i] != shortcuts[j]) continue;
+                Wh_Log(L"%s and %s use the same shortcut; both disabled",
+                    kExtractShortcutSettings[i],kExtractShortcutSettings[j]);
+                resolved[i] = resolved[j] = 0;
+            }
+        }
+        std::lock_guard<std::mutex> lock(extractShortcutsMutex);
+        extractShortcuts = resolved;
+    }
+    static ExtractAction ExtractShortcutForKey(WPARAM key) {
+        if (key > 255) return ExtractAction::None;
+        unsigned current = static_cast<unsigned>(key);
         if (GetKeyState(VK_CONTROL) & 0x8000) current |= kShortcutCtrl;
         if (GetKeyState(VK_MENU) & 0x8000) current |= kShortcutAlt;
         if (GetKeyState(VK_SHIFT) & 0x8000) current |= kShortcutShift;
         if ((GetKeyState(VK_LWIN) | GetKeyState(VK_RWIN)) & 0x8000)
             current |= kShortcutWin;
-        return current == (desired & kShortcutMods);
+        std::lock_guard<std::mutex> lock(extractShortcutsMutex);
+        const auto match = std::find(extractShortcuts.begin(),extractShortcuts.end(),current);
+        return current && match != extractShortcuts.end() ?
+            static_cast<ExtractAction>(match - extractShortcuts.begin()) : ExtractAction::None;
+    }
+    static bool IsRepeatedKey(LPARAM keyState) {
+        return (keyState & (1L << 30)) != 0;
     }
     // Extraction status delay; the Shell, not this mod, prepares file content.
     static constexpr ULONGLONG kExtractionProgressDelayMs = 2000;
@@ -836,72 +1011,42 @@ namespace ArchivePreviewOptions {
     }
     static void Load() {
         ExtractionOptions extraction;
-        extraction.externalDrag = Wh_GetIntSetting(L"ExternalDragExtraction") != 0;
-        PCWSTR backend = Wh_GetStringSetting(L"ExtractionBackend");
-        if (backend) {
-            if (_wcsicmp(backend,L"auto") == 0) extraction.backend = 1;
-            else if (_wcsicmp(backend,L"7zip") == 0) extraction.backend = 2;
-            else if (_wcsicmp(backend,L"nanazip") == 0) extraction.backend = 3;
-            else if (_wcsicmp(backend,L"winrar") == 0) extraction.backend = 4;
-            Wh_FreeStringSetting(backend);
-        }
-        PCWSTR executable = Wh_GetStringSetting(L"ExternalExtractorPath");
-        if (executable) {
-            extraction.executable = executable;
-            Wh_FreeStringSetting(executable);
-        }
+        extraction.externalDrag = Wh_GetIntSetting(L"Extract.ExternalDragExtraction") != 0;
+        const auto backend = ArchivePreviewSettings::ReadText(L"Extract.ExtractionBackend");
+        if (_wcsicmp(backend.c_str(),L"auto") == 0) extraction.backend = 1;
+        else if (_wcsicmp(backend.c_str(),L"7zip") == 0) extraction.backend = 2;
+        else if (_wcsicmp(backend.c_str(),L"nanazip") == 0) extraction.backend = 3;
+        else if (_wcsicmp(backend.c_str(),L"winrar") == 0) extraction.backend = 4;
+        extraction.executable = ArchivePreviewSettings::ReadText(L"Extract.ExternalExtractorPath");
         {
             std::lock_guard<std::mutex> lock(extractionOptionsMutex);
             extractionOptions = std::move(extraction);
         }
-        PCWSTR extensionSetting = Wh_GetStringSetting(L"ArchiveExtensions");
-        if(extensionSetting) {
-            std::wstring text(extensionSetting);
-            Wh_FreeStringSetting(extensionSetting);
-            auto parsed = ParseExtensions(text);
-            // An intentionally empty list is allowed, but a nonempty string
-            // containing exclusively bad tokens must not blank all previews.
-            if(parsed.empty() && !text.empty() && text.find_first_not_of(L" \t\r\n,;") != std::wstring::npos) {
-                Wh_Log(L"ArchivePreview: ignored entirely invalid extension setting; keeping last valid snapshot");
-            } else {
-                std::lock_guard < std::mutex > lock(extensionsMutex);
-                extensions = std::move(parsed);
-            }
+        const auto text = ArchivePreviewSettings::ReadText(L"FilesAndSecurity.ArchiveExtensions");
+        auto parsed = ParseExtensions(text);
+        // A nonempty setting containing only invalid extensions must not
+        // replace the last valid snapshot. An empty list is intentional.
+        if(parsed.empty() && !text.empty() && text.find_first_not_of(L" \t\r\n,;") != std::wstring::npos) {
+            Wh_Log(L"ArchivePreview: ignored entirely invalid extension setting; keeping last valid snapshot");
+        } else {
+            std::lock_guard < std::mutex > lock(extensionsMutex);
+            extensions = std::move(parsed);
         }
-        autoAllowInternetArchivePreview.store(Wh_GetIntSetting(L"AutoAllowInternetArchivePreview") != 0, std::memory_order_relaxed);
-        // Missing options on upgrade default to visible columns and a warning.
-        showDate.store(Wh_GetIntSetting(L"HideDateModified") == 0);
-        showType.store(Wh_GetIntSetting(L"HideType") == 0);
-        showSize.store(Wh_GetIntSetting(L"HideSize") == 0);
-        readLargeDates.store(Wh_GetIntSetting(L"ReadLargeArchiveDates") != 0);
-        readLargeSizes.store(Wh_GetIntSetting(L"ReadLargeArchiveSizes") != 0);
-        PCWSTR value = Wh_GetStringSetting(L"ThemeMode");
+        autoAllowInternetArchivePreview.store(
+            Wh_GetIntSetting(L"FilesAndSecurity.AutoAllowInternetArchivePreview") != 0,std::memory_order_relaxed);
+        hideHorizontalScrollbar.store(Wh_GetIntSetting(L"DisplayColumns.HideHorizontalScrollbar") != 0);
+        const unsigned largeDates = Wh_GetIntSetting(L"DisplayColumns.ReadLargeArchiveDates") ? 1u : 0u;
+        const unsigned largeSizes = Wh_GetIntSetting(L"DisplayColumns.ReadLargeArchiveSizes") ? 2u : 0u;
+        largeMetadataMask.store(largeDates | largeSizes);
+        const auto theme = ArchivePreviewSettings::ReadText(L"Preview.ThemeMode");
         int newMode = 0;
-        if (value) {
-            if (_wcsicmp(value,L"light") == 0) newMode = 1;
-            else if (_wcsicmp(value,L"dark") == 0) newMode = 2;
-            Wh_FreeStringSetting(value);
-        }
+        if (_wcsicmp(theme.c_str(),L"light") == 0) newMode = 1;
+        else if (_wcsicmp(theme.c_str(),L"dark") == 0) newMode = 2;
         themeMode.store(newMode);
-        PCWSTR languageSetting = Wh_GetStringSetting(L"Language");
-        int language = 0;
-        if (languageSetting) {
-            if (_wcsicmp(languageSetting,L"es") == 0) language = 1;
-            else if (_wcsicmp(languageSetting,L"en") == 0) language = 2;
-            Wh_FreeStringSetting(languageSetting);
-        }
-        uiLanguage.store(language,std::memory_order_relaxed);
-        PCWSTR selectedHotkey = Wh_GetStringSetting(L"ExtractSelectedShortcut");
-        unsigned hotkey = kShortcutCtrl | kShortcutShift | 'E';
-        if (selectedHotkey) {
-            hotkey = ParseExtractSelectedShortcut(selectedHotkey);
-            if (!hotkey && * selectedHotkey &&
-                _wcsicmp(selectedHotkey,L"disabled") != 0 &&
-                _wcsicmp(selectedHotkey,L"none") != 0)
-                Wh_Log(L"Invalid ExtractSelectedShortcut setting; shortcut disabled");
-            Wh_FreeStringSetting(selectedHotkey);
-        }
-        extractSelectedShortcut.store(hotkey,std::memory_order_relaxed);
+        closeExplorerWindowOnUnload.store(
+            Wh_GetIntSetting(L"ModLifecycle.CloseExplorerWindowOnUnload") != 0);
+        ArchivePreviewText::LoadLanguage();
+        LoadExtractShortcuts();
     }
     static bool Dark(bool systemDark) {
         const int mode = themeMode.load();
@@ -910,31 +1055,923 @@ namespace ArchivePreviewOptions {
 }
 
 namespace ArchivePreviewText {
-enum class Id { Back, ExtractHere, ExtractTo, ExtractSelected, Selected,
-                Cancel, SelectedHere, SelectedTo, PickFolder,
-                ColumnName, ColumnDate, ColumnType, ColumnSize };
+enum class Id : size_t {
+    ColumnName, ColumnDate, ColumnType, ColumnSize, Back, ExtractHere, ExtractTo,
+    ExtractSelected, Selected, Cancel, SelectedHere, SelectedTo, PickFolder,
+    MainCount,
+    Extracting = MainCount, PreparingFiles, StartingExtraction, Cancelling,
+    ExternalProgress, CancelInExternal, ExtractorMissing, Estimate,
+    ExtractionComplete, ExtractionCancelled, Count
+};
+using MainStrings = std::array<PCWSTR,static_cast<size_t>(Id::MainCount)>;
+using NoticeStrings = std::array<PCWSTR,static_cast<size_t>(Id::Count) - static_cast<size_t>(Id::MainCount)>;
+
+static constexpr NoticeStrings kNotices_en = {
+    L"Extracting…", L"Preparing files…",
+    L"Starting extraction…", L"Cancelling…",
+    L"Progress in external application", L"Cancel extraction in the external application's window.",
+    L"Extraction program not found. Check the mod settings.", L"estimate",
+    L"Extraction completed.", L"Extraction cancelled."
+};
+
+static constexpr NoticeStrings kNotices_es = {
+    L"Extrayendo…", L"Preparando archivos…",
+    L"Iniciando extracción…", L"Cancelando…",
+    L"Progreso en el programa externo", L"Cancela la extracción desde la ventana del programa externo.",
+    L"No se encuentra el programa de extracción. Revisa los ajustes del mod.", L"estimación",
+    L"Extracción completada.", L"Extracción cancelada."
+};
+
+static constexpr NoticeStrings kNotices_pt_BR = {
+    L"Extraindo…", L"Preparando arquivos…",
+    L"Iniciando extração…", L"Cancelando…",
+    L"Progresso no programa externo", L"Cancele a extração pela janela do programa externo.",
+    L"Programa de extração não encontrado. Confira as configurações do mod.", L"estimativa",
+    L"Extração concluída.", L"Extração cancelada."
+};
+
+static constexpr NoticeStrings kNotices_pt_PT = {
+    L"A extrair…", L"A preparar ficheiros…",
+    L"A iniciar a extração…", L"A cancelar…",
+    L"Progresso no programa externo", L"Cancele a extração na janela do programa externo.",
+    L"Programa de extração não encontrado. Verifique as definições do mod.", L"estimativa",
+    L"Extração concluída.", L"Extração cancelada."
+};
+
+static constexpr NoticeStrings kNotices_de = {
+    L"Wird entpackt…", L"Dateien werden vorbereitet…",
+    L"Entpacken wird gestartet…", L"Wird abgebrochen…",
+    L"Fortschritt im externen Programm", L"Brechen Sie den Vorgang im Fenster des externen Programms ab.",
+    L"Entpackprogramm nicht gefunden. Prüfen Sie die Mod-Einstellungen.", L"Schätzung",
+    L"Entpacken abgeschlossen.", L"Entpacken abgebrochen."
+};
+
+static constexpr NoticeStrings kNotices_fr = {
+    L"Extraction en cours…", L"Préparation des fichiers…",
+    L"Démarrage de l’extraction…", L"Annulation en cours…",
+    L"Progression dans le programme externe", L"Annulez l’extraction dans la fenêtre du programme externe.",
+    L"Programme d’extraction introuvable. Vérifiez les paramètres du mod.", L"estimation",
+    L"Extraction terminée.", L"Extraction annulée."
+};
+
+static constexpr NoticeStrings kNotices_it = {
+    L"Estrazione in corso…", L"Preparazione dei file…",
+    L"Avvio dell’estrazione…", L"Annullamento in corso…",
+    L"Avanzamento nel programma esterno", L"Annulla l’estrazione dalla finestra del programma esterno.",
+    L"Programma di estrazione non trovato. Controlla le impostazioni del mod.", L"stima",
+    L"Estrazione completata.", L"Estrazione annullata."
+};
+
+static constexpr NoticeStrings kNotices_nl = {
+    L"Bezig met uitpakken…", L"Bestanden voorbereiden…",
+    L"Uitpakken starten…", L"Bezig met annuleren…",
+    L"Voortgang in extern programma", L"Annuleer het uitpakken in het venster van het externe programma.",
+    L"Uitpakprogramma niet gevonden. Controleer de modinstellingen.", L"schatting",
+    L"Uitpakken voltooid.", L"Uitpakken geannuleerd."
+};
+
+static constexpr NoticeStrings kNotices_ja = {
+    L"展開中…", L"ファイルを準備中…",
+    L"展開を開始中…", L"キャンセル中…",
+    L"外部アプリでの進行状況", L"外部アプリのウィンドウで展開をキャンセルしてください。",
+    L"展開アプリが見つかりません。Modの設定を確認してください。", L"推定",
+    L"展開が完了しました。", L"展開をキャンセルしました。"
+};
+
+static constexpr NoticeStrings kNotices_ko = {
+    L"압축 푸는 중…", L"파일 준비 중…",
+    L"압축 풀기 시작 중…", L"취소 중…",
+    L"외부 프로그램에서 진행 중", L"외부 프로그램 창에서 압축 풀기를 취소하세요.",
+    L"압축 풀기 프로그램을 찾을 수 없습니다. 모드 설정을 확인하세요.", L"추정",
+    L"압축 풀기가 완료되었습니다.", L"압축 풀기가 취소되었습니다."
+};
+
+static constexpr NoticeStrings kNotices_zh_Hans = {
+    L"正在解压…", L"正在准备文件…",
+    L"正在开始解压…", L"正在取消…",
+    L"进度在外部程序中显示", L"请在外部程序的窗口中取消解压。",
+    L"找不到解压程序。请检查模组设置。", L"估计",
+    L"解压完成。", L"解压已取消。"
+};
+
+static constexpr NoticeStrings kNotices_zh_Hant = {
+    L"正在解壓縮…", L"正在準備檔案…",
+    L"正在開始解壓縮…", L"正在取消…",
+    L"進度顯示於外部程式", L"請在外部程式的視窗中取消解壓縮。",
+    L"找不到解壓縮程式。請檢查模組設定。", L"估計",
+    L"解壓縮完成。", L"解壓縮已取消。"
+};
+
+static constexpr NoticeStrings kNotices_ru = {
+    L"Извлечение…", L"Подготовка файлов…",
+    L"Запуск извлечения…", L"Отмена…",
+    L"Ход работы во внешней программе", L"Отмените извлечение в окне внешней программы.",
+    L"Программа для извлечения не найдена. Проверьте настройки мода.", L"оценка",
+    L"Извлечение завершено.", L"Извлечение отменено."
+};
+
+static constexpr NoticeStrings kNotices_uk = {
+    L"Видобування…", L"Підготовка файлів…",
+    L"Початок видобування…", L"Скасування…",
+    L"Перебіг у зовнішній програмі", L"Скасуйте видобування у вікні зовнішньої програми.",
+    L"Програму для видобування не знайдено. Перевірте налаштування моду.", L"оцінка",
+    L"Видобування завершено.", L"Видобування скасовано."
+};
+
+static constexpr NoticeStrings kNotices_ar = {
+    L"جارٍ الاستخراج…", L"جارٍ تجهيز الملفات…",
+    L"جارٍ بدء الاستخراج…", L"جارٍ الإلغاء…",
+    L"التقدم في البرنامج الخارجي", L"ألغِ الاستخراج من نافذة البرنامج الخارجي.",
+    L"لم يتم العثور على برنامج الاستخراج. تحقّق من إعدادات الإضافة.", L"تقدير",
+    L"اكتمل الاستخراج.", L"تم إلغاء الاستخراج."
+};
+
+static constexpr NoticeStrings kNotices_he = {
+    L"מחלץ…", L"מכין קבצים…",
+    L"מתחיל חילוץ…", L"מבטל…",
+    L"ההתקדמות מוצגת ביישום החיצוני", L"בטל את החילוץ בחלון היישום החיצוני.",
+    L"תוכנת החילוץ לא נמצאה. בדוק את הגדרות המוד.", L"הערכה",
+    L"החילוץ הושלם.", L"החילוץ בוטל."
+};
+
+static constexpr NoticeStrings kNotices_tr = {
+    L"Çıkarılıyor…", L"Dosyalar hazırlanıyor…",
+    L"Çıkarma başlatılıyor…", L"İptal ediliyor…",
+    L"İlerleme harici programda gösteriliyor", L"Çıkarmayı harici programın penceresinden iptal edin.",
+    L"Çıkarma programı bulunamadı. Mod ayarlarını kontrol edin.", L"tahmini",
+    L"Çıkarma tamamlandı.", L"Çıkarma iptal edildi."
+};
+
+static constexpr NoticeStrings kNotices_pl = {
+    L"Rozpakowywanie…", L"Przygotowywanie plików…",
+    L"Rozpoczynanie rozpakowywania…", L"Anulowanie…",
+    L"Postęp w programie zewnętrznym", L"Anuluj rozpakowywanie w oknie programu zewnętrznego.",
+    L"Nie znaleziono programu do rozpakowywania. Sprawdź ustawienia moda.", L"szacunek",
+    L"Rozpakowywanie zakończone.", L"Rozpakowywanie anulowane."
+};
+
+static constexpr NoticeStrings kNotices_hi = {
+    L"निकाला जा रहा है…", L"फ़ाइलें तैयार हो रही हैं…",
+    L"निकालना शुरू हो रहा है…", L"रद्द किया जा रहा है…",
+    L"बाहरी प्रोग्राम में प्रगति", L"बाहरी प्रोग्राम की विंडो में निकालना रद्द करें।",
+    L"निकालने वाला प्रोग्राम नहीं मिला। मॉड की सेटिंग देखें।", L"अनुमान",
+    L"निकालना पूरा हुआ।", L"निकालना रद्द हुआ।"
+};
+
+static constexpr NoticeStrings kNotices_id = {
+    L"Mengekstrak…", L"Menyiapkan file…",
+    L"Memulai ekstraksi…", L"Membatalkan…",
+    L"Progres di program eksternal", L"Batalkan ekstraksi di jendela program eksternal.",
+    L"Program ekstraksi tidak ditemukan. Periksa pengaturan mod.", L"perkiraan",
+    L"Ekstraksi selesai.", L"Ekstraksi dibatalkan."
+};
+
+static constexpr NoticeStrings kNotices_vi = {
+    L"Đang giải nén…", L"Đang chuẩn bị tệp…",
+    L"Đang bắt đầu giải nén…", L"Đang hủy…",
+    L"Tiến độ trong chương trình bên ngoài", L"Hủy giải nén trong cửa sổ chương trình bên ngoài.",
+    L"Không tìm thấy chương trình giải nén. Hãy kiểm tra cài đặt của mod.", L"ước tính",
+    L"Đã giải nén xong.", L"Đã hủy giải nén."
+};
+
+static constexpr NoticeStrings kNotices_th = {
+    L"กำลังแตกไฟล์…", L"กำลังเตรียมไฟล์…",
+    L"กำลังเริ่มแตกไฟล์…", L"กำลังยกเลิก…",
+    L"ดูความคืบหน้าในโปรแกรมภายนอก", L"ยกเลิกการแตกไฟล์ในหน้าต่างของโปรแกรมภายนอก",
+    L"ไม่พบโปรแกรมแตกไฟล์ โปรดตรวจสอบการตั้งค่าม็อด", L"โดยประมาณ",
+    L"แตกไฟล์เสร็จแล้ว", L"ยกเลิกการแตกไฟล์แล้ว"
+};
+
+static constexpr NoticeStrings kNotices_fa = {
+    L"در حال استخراج…", L"در حال آماده\u200Cسازی فایل\u200Cها…",
+    L"در حال شروع استخراج…", L"در حال لغو…",
+    L"پیشرفت در برنامهٔ خارجی", L"استخراج را از پنجرهٔ برنامهٔ خارجی لغو کنید.",
+    L"برنامهٔ استخراج پیدا نشد. تنظیمات افزونه را بررسی کنید.", L"برآورد",
+    L"استخراج کامل شد.", L"استخراج لغو شد."
+};
+
+struct Catalog {
+    PCWSTR tag;
+    bool rightToLeft;
+    MainStrings controls;
+    const NoticeStrings * notices;
+};
+
+// Cherokee, Latin Inuktitut, and K'iche' use terms from the Microsoft
+// Terminology Collection. Keep the settings choices and catalog tags in sync.
+// Windows variants with shared wording resolve to the same catalog.
+static constexpr Catalog kCatalogs[] = {
+    {L"en", false, {
+        L"Name", L"Modified", L"Type", L"Size",
+        L"Back", L"Extract here", L"Extract to…", L"Extract selected",
+        L"Selected", L"Cancel", L"Extract selected here", L"Extract selected to…",
+        L"Extract archive to…"
+    }, &kNotices_en},
+    {L"ar", true, {
+        L"الاسم", L"تاريخ التعديل", L"النوع", L"الحجم",
+        L"رجوع", L"استخراج هنا", L"استخراج إلى…", L"استخراج المحدد",
+        L"المحدد", L"إلغاء", L"استخراج المحدد هنا", L"استخراج المحدد إلى…",
+        L"استخراج الأرشيف إلى…"
+    }, &kNotices_ar},
+    {L"bg", false, {
+        L"Име", L"Променен на", L"Тип", L"Размер",
+        L"Назад", L"Разархивирай тук", L"Разархивирай в…", L"Разархивирай избраното",
+        L"Избрано", L"Отказ", L"Разархивирай избраното тук", L"Разархивирай избраното в…",
+        L"Разархивирай архива в…"
+    }, nullptr},
+    {L"ca", false, {
+        L"Nom", L"Data de modificació", L"Tipus", L"Mida",
+        L"Enrere", L"Extreu aquí", L"Extreu a…", L"Extreu la selecció",
+        L"Selecció", L"Cancel·la", L"Extreu la selecció aquí", L"Extreu la selecció a…",
+        L"Extreu el fitxer comprimit a…"
+    }, nullptr},
+    {L"cs", false, {
+        L"Název", L"Změněno", L"Typ", L"Velikost",
+        L"Zpět", L"Rozbalit zde", L"Rozbalit do…", L"Rozbalit výběr",
+        L"Výběr", L"Zrušit", L"Rozbalit výběr zde", L"Rozbalit výběr do…",
+        L"Rozbalit archiv do…"
+    }, nullptr},
+    {L"da", false, {
+        L"Navn", L"Ændret", L"Type", L"Størrelse",
+        L"Tilbage", L"Udpak her", L"Udpak til…", L"Udpak valgte",
+        L"Valgte", L"Annuller", L"Udpak valgte her", L"Udpak valgte til…",
+        L"Udpak arkiv til…"
+    }, nullptr},
+    {L"de", false, {
+        L"Name", L"Geändert am", L"Typ", L"Größe",
+        L"Zurück", L"Hier entpacken", L"Entpacken nach…", L"Auswahl entpacken",
+        L"Auswahl", L"Abbrechen", L"Auswahl hier entpacken", L"Auswahl entpacken nach…",
+        L"Archiv entpacken nach…"
+    }, &kNotices_de},
+    {L"el", false, {
+        L"Όνομα", L"Τροποποιήθηκε", L"Τύπος", L"Μέγεθος",
+        L"Πίσω", L"Εξαγωγή εδώ", L"Εξαγωγή σε…", L"Εξαγωγή επιλογής",
+        L"Επιλογή", L"Ακύρωση", L"Εξαγωγή επιλογής εδώ", L"Εξαγωγή επιλογής σε…",
+        L"Εξαγωγή αρχείου σε…"
+    }, nullptr},
+    {L"es", false, {
+        L"Nombre", L"Modificación", L"Tipo", L"Tamaño",
+        L"Atrás", L"Extraer aquí", L"Extraer en…", L"Extraer selección",
+        L"Selección", L"Cancelar", L"Extraer selección aquí", L"Extraer selección en…",
+        L"Extraer archivo en…"
+    }, &kNotices_es},
+    {L"et", false, {
+        L"Nimi", L"Muudetud", L"Tüüp", L"Suurus",
+        L"Tagasi", L"Paki siia lahti", L"Paki lahti asukohta…", L"Paki valitud lahti",
+        L"Valitud", L"Loobu", L"Paki valitud siia lahti", L"Paki valitud lahti asukohta…",
+        L"Paki arhiiv lahti asukohta…"
+    }, nullptr},
+    {L"eu", false, {
+        L"Izena", L"Aldatze-data", L"Mota", L"Tamaina",
+        L"Atzera", L"Atera hemen", L"Atera hona…", L"Atera hautatutakoa",
+        L"Hautatua", L"Utzi", L"Atera hautatutakoa hemen", L"Atera hautatutakoa hona…",
+        L"Atera artxiboa hona…"
+    }, nullptr},
+    {L"fi", false, {
+        L"Nimi", L"Muokattu", L"Tyyppi", L"Koko",
+        L"Takaisin", L"Pura tähän", L"Pura kohteeseen…", L"Pura valitut",
+        L"Valitut", L"Peruuta", L"Pura valitut tähän", L"Pura valitut kohteeseen…",
+        L"Pura arkisto kohteeseen…"
+    }, nullptr},
+    {L"fr", false, {
+        L"Nom", L"Modifié le", L"Type", L"Taille",
+        L"Retour", L"Extraire ici", L"Extraire vers…", L"Extraire la sélection",
+        L"Sélection", L"Annuler", L"Extraire la sélection ici", L"Extraire la sélection vers…",
+        L"Extraire l’archive vers…"
+    }, &kNotices_fr},
+    {L"gl", false, {
+        L"Nome", L"Data de modificación", L"Tipo", L"Tamaño",
+        L"Atrás", L"Extraer aquí", L"Extraer en…", L"Extraer a selección",
+        L"Selección", L"Cancelar", L"Extraer a selección aquí", L"Extraer a selección en…",
+        L"Extraer o arquivo en…"
+    }, nullptr},
+    {L"he", true, {
+        L"שם", L"תאריך שינוי", L"סוג", L"גודל",
+        L"חזרה", L"חלץ כאן", L"חלץ אל…", L"חלץ את הבחירה",
+        L"בחירה", L"ביטול", L"חלץ את הבחירה כאן", L"חלץ את הבחירה אל…",
+        L"חלץ את הארכיון אל…"
+    }, &kNotices_he},
+    {L"hr", false, {
+        L"Naziv", L"Izmijenjeno", L"Vrsta", L"Veličina",
+        L"Natrag", L"Raspakiraj ovdje", L"Raspakiraj u…", L"Raspakiraj odabrano",
+        L"Odabrano", L"Odustani", L"Raspakiraj odabrano ovdje", L"Raspakiraj odabrano u…",
+        L"Raspakiraj arhivu u…"
+    }, nullptr},
+    {L"hu", false, {
+        L"Név", L"Módosítva", L"Típus", L"Méret",
+        L"Vissza", L"Kibontás ide", L"Kibontás ide: …", L"Kijelöltek kibontása",
+        L"Kijelöltek", L"Mégse", L"Kijelöltek kibontása ide", L"Kijelöltek kibontása ide: …",
+        L"Archívum kibontása ide: …"
+    }, nullptr},
+    {L"id", false, {
+        L"Nama", L"Diubah", L"Jenis", L"Ukuran",
+        L"Kembali", L"Ekstrak di sini", L"Ekstrak ke…", L"Ekstrak pilihan",
+        L"Pilihan", L"Batal", L"Ekstrak pilihan di sini", L"Ekstrak pilihan ke…",
+        L"Ekstrak arsip ke…"
+    }, &kNotices_id},
+    {L"it", false, {
+        L"Nome", L"Data di modifica", L"Tipo", L"Dimensione",
+        L"Indietro", L"Estrai qui", L"Estrai in…", L"Estrai selezione",
+        L"Selezione", L"Annulla", L"Estrai selezione qui", L"Estrai selezione in…",
+        L"Estrai archivio in…"
+    }, &kNotices_it},
+    {L"ja", false, {
+        L"名前", L"更新日時", L"種類", L"サイズ",
+        L"戻る", L"ここに展開", L"展開先を選択…", L"選択項目を展開",
+        L"選択項目", L"キャンセル", L"選択項目をここに展開", L"選択項目の展開先を選択…",
+        L"アーカイブの展開先を選択…"
+    }, &kNotices_ja},
+    {L"ko", false, {
+        L"이름", L"수정한 날짜", L"유형", L"크기",
+        L"뒤로", L"여기에 풀기", L"풀 위치 선택…", L"선택 항목 풀기",
+        L"선택 항목", L"취소", L"선택 항목을 여기에 풀기", L"선택 항목을 풀 위치 선택…",
+        L"압축을 풀 위치 선택…"
+    }, &kNotices_ko},
+    {L"lt", false, {
+        L"Pavadinimas", L"Keitimo data", L"Tipas", L"Dydis",
+        L"Atgal", L"Išskleisti čia", L"Išskleisti į…", L"Išskleisti pažymėtus",
+        L"Pažymėti", L"Atšaukti", L"Išskleisti pažymėtus čia", L"Išskleisti pažymėtus į…",
+        L"Išskleisti archyvą į…"
+    }, nullptr},
+    {L"lv", false, {
+        L"Nosaukums", L"Mainīšanas datums", L"Tips", L"Lielums",
+        L"Atpakaļ", L"Atspiest šeit", L"Atspiest uz…", L"Atspiest atlasīto",
+        L"Atlasīts", L"Atcelt", L"Atspiest atlasīto šeit", L"Atspiest atlasīto uz…",
+        L"Atspiest arhīvu uz…"
+    }, nullptr},
+    {L"nb", false, {
+        L"Navn", L"Endret", L"Type", L"Størrelse",
+        L"Tilbake", L"Pakk ut her", L"Pakk ut til…", L"Pakk ut valgte",
+        L"Valgte", L"Avbryt", L"Pakk ut valgte her", L"Pakk ut valgte til…",
+        L"Pakk ut arkiv til…"
+    }, nullptr},
+    {L"nl", false, {
+        L"Naam", L"Gewijzigd op", L"Type", L"Grootte",
+        L"Terug", L"Hier uitpakken", L"Uitpakken naar…", L"Selectie uitpakken",
+        L"Selectie", L"Annuleren", L"Selectie hier uitpakken", L"Selectie uitpakken naar…",
+        L"Archief uitpakken naar…"
+    }, &kNotices_nl},
+    {L"pl", false, {
+        L"Nazwa", L"Data modyfikacji", L"Typ", L"Rozmiar",
+        L"Wstecz", L"Rozpakuj tutaj", L"Rozpakuj do…", L"Rozpakuj zaznaczone",
+        L"Zaznaczone", L"Anuluj", L"Rozpakuj zaznaczone tutaj", L"Rozpakuj zaznaczone do…",
+        L"Rozpakuj archiwum do…"
+    }, &kNotices_pl},
+    {L"pt-BR", false, {
+        L"Nome", L"Data de modificação", L"Tipo", L"Tamanho",
+        L"Voltar", L"Extrair aqui", L"Extrair para…", L"Extrair seleção",
+        L"Seleção", L"Cancelar", L"Extrair seleção aqui", L"Extrair seleção para…",
+        L"Extrair arquivo para…"
+    }, &kNotices_pt_BR},
+    {L"pt-PT", false, {
+        L"Nome", L"Data de modificação", L"Tipo", L"Tamanho",
+        L"Voltar", L"Extrair aqui", L"Extrair para…", L"Extrair seleção",
+        L"Seleção", L"Cancelar", L"Extrair seleção aqui", L"Extrair seleção para…",
+        L"Extrair ficheiro para…"
+    }, &kNotices_pt_PT},
+    {L"ro", false, {
+        L"Nume", L"Data modificării", L"Tip", L"Dimensiune",
+        L"Înapoi", L"Extrage aici", L"Extrage în…", L"Extrage selecția",
+        L"Selecție", L"Anulează", L"Extrage selecția aici", L"Extrage selecția în…",
+        L"Extrage arhiva în…"
+    }, nullptr},
+    {L"ru", false, {
+        L"Имя", L"Дата изменения", L"Тип", L"Размер",
+        L"Назад", L"Извлечь здесь", L"Извлечь в…", L"Извлечь выбранное",
+        L"Выбранное", L"Отмена", L"Извлечь выбранное здесь", L"Извлечь выбранное в…",
+        L"Извлечь архив в…"
+    }, &kNotices_ru},
+    {L"sk", false, {
+        L"Názov", L"Dátum úpravy", L"Typ", L"Veľkosť",
+        L"Späť", L"Rozbaliť sem", L"Rozbaliť do…", L"Rozbaliť výber",
+        L"Výber", L"Zrušiť", L"Rozbaliť výber sem", L"Rozbaliť výber do…",
+        L"Rozbaliť archív do…"
+    }, nullptr},
+    {L"sl", false, {
+        L"Ime", L"Spremenjeno", L"Vrsta", L"Velikost",
+        L"Nazaj", L"Razširi sem", L"Razširi v…", L"Razširi izbor",
+        L"Izbor", L"Prekliči", L"Razširi izbor sem", L"Razširi izbor v…",
+        L"Razširi arhiv v…"
+    }, nullptr},
+    {L"sr-Latn", false, {
+        L"Ime", L"Datum izmene", L"Tip", L"Veličina",
+        L"Nazad", L"Raspakuj ovde", L"Raspakuj u…", L"Raspakuj izabrano",
+        L"Izabrano", L"Otkaži", L"Raspakuj izabrano ovde", L"Raspakuj izabrano u…",
+        L"Raspakuj arhivu u…"
+    }, nullptr},
+    {L"sr-Cyrl", false, {
+        L"Име", L"Датум измене", L"Тип", L"Величина",
+        L"Назад", L"Распакуј овде", L"Распакуј у…", L"Распакуј изабрано",
+        L"Изабрано", L"Откажи", L"Распакуј изабрано овде", L"Распакуј изабрано у…",
+        L"Распакуј архиву у…"
+    }, nullptr},
+    {L"sv", false, {
+        L"Namn", L"Ändrad", L"Typ", L"Storlek",
+        L"Tillbaka", L"Packa upp här", L"Packa upp till…", L"Packa upp markerade",
+        L"Markerade", L"Avbryt", L"Packa upp markerade här", L"Packa upp markerade till…",
+        L"Packa upp arkiv till…"
+    }, nullptr},
+    {L"th", false, {
+        L"ชื่อ", L"วันที่แก้ไข", L"ชนิด", L"ขนาด",
+        L"ย้อนกลับ", L"แตกไฟล์ที่นี่", L"แตกไฟล์ไปยัง…", L"แตกไฟล์ที่เลือก",
+        L"ที่เลือก", L"ยกเลิก", L"แตกไฟล์ที่เลือกที่นี่", L"แตกไฟล์ที่เลือกไปยัง…",
+        L"แตกไฟล์เก็บถาวรไปยัง…"
+    }, &kNotices_th},
+    {L"tr", false, {
+        L"Ad", L"Değiştirme tarihi", L"Tür", L"Boyut",
+        L"Geri", L"Buraya çıkar", L"Konuma çıkar…", L"Seçilenleri çıkar",
+        L"Seçilenler", L"İptal", L"Seçilenleri buraya çıkar", L"Seçilenleri konuma çıkar…",
+        L"Arşivi konuma çıkar…"
+    }, &kNotices_tr},
+    {L"uk", false, {
+        L"Ім’я", L"Дата змінення", L"Тип", L"Розмір",
+        L"Назад", L"Видобути сюди", L"Видобути до…", L"Видобути вибране",
+        L"Вибране", L"Скасувати", L"Видобути вибране сюди", L"Видобути вибране до…",
+        L"Видобути архів до…"
+    }, &kNotices_uk},
+    {L"vi", false, {
+        L"Tên", L"Ngày sửa đổi", L"Loại", L"Kích thước",
+        L"Quay lại", L"Giải nén tại đây", L"Giải nén vào…", L"Giải nén mục đã chọn",
+        L"Đã chọn", L"Hủy", L"Giải nén mục đã chọn tại đây", L"Giải nén mục đã chọn vào…",
+        L"Giải nén tệp nén vào…"
+    }, &kNotices_vi},
+    {L"zh-Hans", false, {
+        L"名称", L"修改日期", L"类型", L"大小",
+        L"返回", L"解压到此处", L"解压到…", L"解压所选项",
+        L"所选项", L"取消", L"将所选项解压到此处", L"将所选项解压到…",
+        L"将压缩包解压到…"
+    }, &kNotices_zh_Hans},
+    {L"zh-Hant", false, {
+        L"名稱", L"修改日期", L"類型", L"大小",
+        L"返回", L"解壓縮至此處", L"解壓縮至…", L"解壓縮所選項目",
+        L"所選項目", L"取消", L"將所選項目解壓縮至此處", L"將所選項目解壓縮至…",
+        L"將壓縮檔解壓縮至…"
+    }, &kNotices_zh_Hant},
+    {L"af", false, {
+        L"Naam", L"Gewysig", L"Tipe", L"Grootte",
+        L"Terug", L"Pak hier uit", L"Pak uit na…", L"Pak gekose items uit",
+        L"Gekies", L"Kanselleer", L"Pak gekose items hier uit", L"Pak gekose items uit na…",
+        L"Pak argief uit na…"
+    }, nullptr},
+    {L"sq", false, {
+        L"Emri", L"Data e ndryshimit", L"Lloji", L"Madhësia",
+        L"Prapa", L"Nxirr këtu", L"Nxirr te…", L"Nxirr përzgjedhjen",
+        L"Përzgjedhja", L"Anulo", L"Nxirr përzgjedhjen këtu", L"Nxirr përzgjedhjen te…",
+        L"Nxirr arkivin te…"
+    }, nullptr},
+    {L"am", false, {
+        L"ስም", L"የተቀየረበት ቀን", L"ዓይነት", L"መጠን",
+        L"ተመለስ", L"እዚህ አውጣ", L"ወደ… አውጣ", L"የተመረጡትን አውጣ",
+        L"የተመረጡ", L"ሰርዝ", L"የተመረጡትን እዚህ አውጣ", L"የተመረጡትን ወደ… አውጣ",
+        L"የታመቀውን ፋይል ወደ… አውጣ"
+    }, nullptr},
+    {L"hy", false, {
+        L"Անուն", L"Փոփոխման ամսաթիվ", L"Տեսակ", L"Չափ",
+        L"Հետ", L"Ապափաթեթավորել այստեղ", L"Ապափաթեթավորել դեպի…", L"Ապափաթեթավորել ընտրվածը",
+        L"Ընտրված", L"Չեղարկել", L"Ապափաթեթավորել ընտրվածն այստեղ", L"Ապափաթեթավորել ընտրվածը դեպի…",
+        L"Ապափաթեթավորել արխիվը դեպի…"
+    }, nullptr},
+    {L"as", false, {
+        L"নাম", L"সলনিৰ তাৰিখ", L"প্ৰকাৰ", L"আকাৰ",
+        L"পিছলৈ", L"ইয়াত উলিয়াওক", L"ইয়ালৈ উলিয়াওক…", L"নিৰ্বাচিত বস্তু উলিয়াওক",
+        L"নিৰ্বাচিত", L"বাতিল কৰক", L"নিৰ্বাচিত বস্তু ইয়াত উলিয়াওক", L"নিৰ্বাচিত বস্তু ইয়ালৈ উলিয়াওক…",
+        L"সংকুচিত ফাইল ইয়ালৈ উলিয়াওক…"
+    }, nullptr},
+    {L"az", false, {
+        L"Ad", L"Dəyişiklik tarixi", L"Növ", L"Ölçü",
+        L"Geri", L"Buraya çıxar", L"Qovluğa çıxar…", L"Seçilənləri çıxar",
+        L"Seçilənlər", L"Ləğv et", L"Seçilənləri buraya çıxar", L"Seçilənləri qovluğa çıxar…",
+        L"Arxivi qovluğa çıxar…"
+    }, nullptr},
+    {L"be", false, {
+        L"Імя", L"Дата змянення", L"Тып", L"Памер",
+        L"Назад", L"Выняць сюды", L"Выняць у…", L"Выняць выбранае",
+        L"Выбранае", L"Скасаваць", L"Выняць выбранае сюды", L"Выняць выбранае ў…",
+        L"Выняць архіў у…"
+    }, nullptr},
+    {L"bn", false, {
+        L"নাম", L"পরিবর্তনের তারিখ", L"ধরন", L"আকার",
+        L"ফিরে যান", L"এখানে বের করুন", L"গন্তব্যে বের করুন…", L"নির্বাচিতগুলো বের করুন",
+        L"নির্বাচিত", L"বাতিল", L"নির্বাচিতগুলো এখানে বের করুন", L"নির্বাচিতগুলো গন্তব্যে বের করুন…",
+        L"আর্কাইভ গন্তব্যে বের করুন…"
+    }, nullptr},
+    {L"bs", false, {
+        L"Naziv", L"Datum izmjene", L"Vrsta", L"Veličina",
+        L"Nazad", L"Raspakuj ovdje", L"Raspakuj u…", L"Raspakuj odabrano",
+        L"Odabrano", L"Otkaži", L"Raspakuj odabrano ovdje", L"Raspakuj odabrano u…",
+        L"Raspakuj arhivu u…"
+    }, nullptr},
+    {L"fil", false, {
+        L"Pangalan", L"Binago", L"Uri", L"Laki",
+        L"Bumalik", L"I-extract dito", L"I-extract sa…", L"I-extract ang napili",
+        L"Napili", L"Kanselahin", L"I-extract ang napili dito", L"I-extract ang napili sa…",
+        L"I-extract ang archive sa…"
+    }, nullptr},
+    {L"ka", false, {
+        L"სახელი", L"შეცვლის თარიღი", L"ტიპი", L"ზომა",
+        L"უკან", L"აქ ამოარქივება", L"ამოარქივება საქაღალდეში…", L"არჩეულის ამოარქივება",
+        L"არჩეული", L"გაუქმება", L"არჩეულის აქ ამოარქივება", L"არჩეულის ამოარქივება საქაღალდეში…",
+        L"არქივის ამოარქივება საქაღალდეში…"
+    }, nullptr},
+    {L"gu", false, {
+        L"નામ", L"ફેરફાર તારીખ", L"પ્રકાર", L"કદ",
+        L"પાછા", L"અહીં કાઢો", L"આ ફોલ્ડરમાં કાઢો…", L"પસંદ કરેલ કાઢો",
+        L"પસંદ કરેલ", L"રદ કરો", L"પસંદ કરેલ અહીં કાઢો", L"પસંદ કરેલ ફોલ્ડરમાં કાઢો…",
+        L"આર્કાઇવને ફોલ્ડરમાં કાઢો…"
+    }, nullptr},
+    {L"hi", false, {
+        L"नाम", L"संशोधन की तारीख", L"प्रकार", L"आकार",
+        L"वापस", L"यहाँ निकालें", L"फ़ोल्डर में निकालें…", L"चुने हुए आइटम निकालें",
+        L"चुने हुए", L"रद्द करें", L"चुने हुए आइटम यहाँ निकालें", L"चुने हुए आइटम फ़ोल्डर में निकालें…",
+        L"संग्रह को फ़ोल्डर में निकालें…"
+    }, &kNotices_hi},
+    {L"is", false, {
+        L"Heiti", L"Breytt", L"Gerð", L"Stærð",
+        L"Til baka", L"Afþjappa hér", L"Afþjappa í…", L"Afþjappa völdu",
+        L"Valið", L"Hætta við", L"Afþjappa völdu hér", L"Afþjappa völdu í…",
+        L"Afþjappa safnskrá í…"
+    }, nullptr},
+    {L"ga", false, {
+        L"Ainm", L"Dáta athraithe", L"Cineál", L"Méid",
+        L"Ar ais", L"Bain amach anseo", L"Bain amach go…", L"Bain amach na míreanna roghnaithe",
+        L"Roghnaithe", L"Cealaigh", L"Bain amach na míreanna roghnaithe anseo", L"Bain amach na míreanna roghnaithe go…",
+        L"Bain amach an chartlann go…"
+    }, nullptr},
+    {L"kn", false, {
+        L"ಹೆಸರು", L"ಬದಲಾಯಿಸಿದ ದಿನಾಂಕ", L"ವಿಧ", L"ಗಾತ್ರ",
+        L"ಹಿಂದೆ", L"ಇಲ್ಲಿ ಹೊರತೆಗೆಯಿರಿ", L"ಈ ಫೋಲ್ಡರ್\u200Cಗೆ ಹೊರತೆಗೆಯಿರಿ…", L"ಆಯ್ದವುಗಳನ್ನು ಹೊರತೆಗೆಯಿರಿ",
+        L"ಆಯ್ದವು", L"ರದ್ದುಮಾಡಿ", L"ಆಯ್ದವುಗಳನ್ನು ಇಲ್ಲಿ ಹೊರತೆಗೆಯಿರಿ", L"ಆಯ್ದವುಗಳನ್ನು ಫೋಲ್ಡರ್\u200Cಗೆ ಹೊರತೆಗೆಯಿರಿ…",
+        L"ಆರ್ಕೈವ್ ಅನ್ನು ಫೋಲ್ಡರ್\u200Cಗೆ ಹೊರತೆಗೆಯಿರಿ…"
+    }, nullptr},
+    {L"kk", false, {
+        L"Атауы", L"Өзгертілген күні", L"Түрі", L"Өлшемі",
+        L"Артқа", L"Осы жерге шығару", L"Қалтаға шығару…", L"Таңдалғандарды шығару",
+        L"Таңдалғандар", L"Болдырмау", L"Таңдалғандарды осы жерге шығару", L"Таңдалғандарды қалтаға шығару…",
+        L"Мұрағатты қалтаға шығару…"
+    }, nullptr},
+    {L"km", false, {
+        L"ឈ្មោះ", L"កាលបរិច្ឆេទកែប្រែ", L"ប្រភេទ", L"ទំហំ",
+        L"ថយក្រោយ", L"ពន្លានៅទីនេះ", L"ពន្លាទៅ…", L"ពន្លាធាតុដែលបានជ្រើស",
+        L"បានជ្រើស", L"បោះបង់", L"ពន្លាធាតុដែលបានជ្រើសនៅទីនេះ", L"ពន្លាធាតុដែលបានជ្រើសទៅ…",
+        L"ពន្លាឯកសារបង្ហាប់ទៅ…"
+    }, nullptr},
+    {L"kok", false, {
+        L"नांव", L"बदलाची तारीख", L"प्रकार", L"आकार",
+        L"फाटीं", L"हांगा काडात", L"फोल्डरांत काडात…", L"वेंचिल्लें काडात",
+        L"वेंचिल्लें", L"रद्द करात", L"वेंचिल्लें हांगा काडात", L"वेंचिल्लें फोल्डरांत काडात…",
+        L"संकुचीत फायल फोल्डरांत काडात…"
+    }, nullptr},
+    {L"lo", false, {
+        L"ຊື່", L"ວັນທີແກ້ໄຂ", L"ປະເພດ", L"ຂະໜາດ",
+        L"ກັບຄືນ", L"ແຕກໄຟລ໌ບ່ອນນີ້", L"ແຕກໄຟລ໌ໄປທີ່…", L"ແຕກໄຟລ໌ທີ່ເລືອກ",
+        L"ທີ່ເລືອກ", L"ຍົກເລີກ", L"ແຕກໄຟລ໌ທີ່ເລືອກບ່ອນນີ້", L"ແຕກໄຟລ໌ທີ່ເລືອກໄປທີ່…",
+        L"ແຕກໄຟລ໌ບີບອັດໄປທີ່…"
+    }, nullptr},
+    {L"lb", false, {
+        L"Numm", L"Geännert", L"Typ", L"Gréisst",
+        L"Zeréck", L"Hei auspaken", L"Auspacken op…", L"Auswiel auspaken",
+        L"Auswiel", L"Ofbriechen", L"Auswiel hei auspaken", L"Auswiel auspaken op…",
+        L"Archiv auspaken op…"
+    }, nullptr},
+    {L"mk", false, {
+        L"Име", L"Датум на промена", L"Тип", L"Големина",
+        L"Назад", L"Отпакувај тука", L"Отпакувај во…", L"Отпакувај го избраното",
+        L"Избрано", L"Откажи", L"Отпакувај го избраното тука", L"Отпакувај го избраното во…",
+        L"Отпакувај ја архивата во…"
+    }, nullptr},
+    {L"ms", false, {
+        L"Nama", L"Tarikh diubah", L"Jenis", L"Saiz",
+        L"Kembali", L"Ekstrak di sini", L"Ekstrak ke…", L"Ekstrak pilihan",
+        L"Pilihan", L"Batal", L"Ekstrak pilihan di sini", L"Ekstrak pilihan ke…",
+        L"Ekstrak arkib ke…"
+    }, nullptr},
+    {L"ml", false, {
+        L"പേര്", L"മാറ്റിയ തീയതി", L"തരം", L"വലുപ്പം",
+        L"തിരികെ", L"ഇവിടെ പുറത്തെടുക്കുക", L"ഫോൾഡറിലേക്ക് പുറത്തെടുക്കുക…", L"തിരഞ്ഞെടുത്തവ പുറത്തെടുക്കുക",
+        L"തിരഞ്ഞെടുത്തവ", L"റദ്ദാക്കുക", L"തിരഞ്ഞെടുത്തവ ഇവിടെ പുറത്തെടുക്കുക", L"തിരഞ്ഞെടുത്തവ ഫോൾഡറിലേക്ക് പുറത്തെടുക്കുക…",
+        L"ആർക്കൈവ് ഫോൾഡറിലേക്ക് പുറത്തെടുക്കുക…"
+    }, nullptr},
+    {L"mt", false, {
+        L"Isem", L"Data tal-bidla", L"Tip", L"Daqs",
+        L"Lura", L"Oħroġ hawn", L"Oħroġ lejn…", L"Oħroġ l-għażla",
+        L"Magħżula", L"Ikkanċella", L"Oħroġ l-għażla hawn", L"Oħroġ l-għażla lejn…",
+        L"Oħroġ l-arkivju lejn…"
+    }, nullptr},
+    {L"mi", false, {
+        L"Ingoa", L"Rā i panonihia", L"Momo", L"Rahi",
+        L"Hoki", L"Tangohia ki konei", L"Tangohia ki…", L"Tangohia ngā mea kua tīpakohia",
+        L"Kua tīpakohia", L"Whakakore", L"Tangohia ngā mea kua tīpakohia ki konei", L"Tangohia ngā mea kua tīpakohia ki…",
+        L"Tangohia te pūranga ki…"
+    }, nullptr},
+    {L"mr", false, {
+        L"नाव", L"बदलाची तारीख", L"प्रकार", L"आकार",
+        L"मागे", L"येथे काढा", L"फोल्डरमध्ये काढा…", L"निवडलेले काढा",
+        L"निवडलेले", L"रद्द करा", L"निवडलेले येथे काढा", L"निवडलेले फोल्डरमध्ये काढा…",
+        L"संग्रह फोल्डरमध्ये काढा…"
+    }, nullptr},
+    {L"ne", false, {
+        L"नाम", L"परिमार्जन मिति", L"प्रकार", L"आकार",
+        L"पछाडि", L"यहाँ निकाल्नुहोस्", L"फोल्डरमा निकाल्नुहोस्…", L"छानिएका वस्तु निकाल्नुहोस्",
+        L"छानिएका", L"रद्द गर्नुहोस्", L"छानिएका वस्तु यहाँ निकाल्नुहोस्", L"छानिएका वस्तु फोल्डरमा निकाल्नुहोस्…",
+        L"सङ्ग्रह फोल्डरमा निकाल्नुहोस्…"
+    }, nullptr},
+    {L"nn", false, {
+        L"Namn", L"Endra", L"Type", L"Storleik",
+        L"Tilbake", L"Pakk ut her", L"Pakk ut til…", L"Pakk ut valde",
+        L"Valde", L"Avbryt", L"Pakk ut valde her", L"Pakk ut valde til…",
+        L"Pakk ut arkiv til…"
+    }, nullptr},
+    {L"or", false, {
+        L"ନାମ", L"ପରିବର୍ତ୍ତନ ତାରିଖ", L"ପ୍ରକାର", L"ଆକାର",
+        L"ପଛକୁ", L"ଏଠାରେ ବାହାର କରନ୍ତୁ", L"ଫୋଲ୍ଡରକୁ ବାହାର କରନ୍ତୁ…", L"ବଛାଯାଇଥିବା ଫାଇଲ ବାହାର କରନ୍ତୁ",
+        L"ବଛାଯାଇଛି", L"ବାତିଲ କରନ୍ତୁ", L"ବଛାଯାଇଥିବା ଫାଇଲ ଏଠାରେ ବାହାର କରନ୍ତୁ", L"ବଛାଯାଇଥିବା ଫାଇଲ ଫୋଲ୍ଡରକୁ ବାହାର କରନ୍ତୁ…",
+        L"ସଂକୁଚିତ ଫାଇଲ ଫୋଲ୍ଡରକୁ ବାହାର କରନ୍ତୁ…"
+    }, nullptr},
+    {L"fa", true, {
+        L"نام", L"تاریخ تغییر", L"نوع", L"اندازه",
+        L"بازگشت", L"استخراج در اینجا", L"استخراج در…", L"استخراج موارد انتخاب\u200Cشده",
+        L"انتخاب\u200Cشده", L"لغو", L"استخراج موارد انتخاب\u200Cشده در اینجا", L"استخراج موارد انتخاب\u200Cشده در…",
+        L"استخراج بایگانی در…"
+    }, &kNotices_fa},
+    {L"pa", false, {
+        L"ਨਾਂ", L"ਸੋਧਣ ਦੀ ਮਿਤੀ", L"ਕਿਸਮ", L"ਆਕਾਰ",
+        L"ਪਿੱਛੇ", L"ਇੱਥੇ ਕੱਢੋ", L"ਫੋਲਡਰ ਵਿੱਚ ਕੱਢੋ…", L"ਚੁਣੀਆਂ ਚੀਜ਼ਾਂ ਕੱਢੋ",
+        L"ਚੁਣੀਆਂ", L"ਰੱਦ ਕਰੋ", L"ਚੁਣੀਆਂ ਚੀਜ਼ਾਂ ਇੱਥੇ ਕੱਢੋ", L"ਚੁਣੀਆਂ ਚੀਜ਼ਾਂ ਫੋਲਡਰ ਵਿੱਚ ਕੱਢੋ…",
+        L"ਆਰਕਾਈਵ ਫੋਲਡਰ ਵਿੱਚ ਕੱਢੋ…"
+    }, nullptr},
+    {L"gd", false, {
+        L"Ainm", L"Ceann-là an atharrachaidh", L"Seòrsa", L"Meud",
+        L"Air ais", L"Dì-phacaich an-seo", L"Dì-phacaich gu…", L"Dì-phacaich na thagh thu",
+        L"Taghta", L"Sguir dheth", L"Dì-phacaich na thagh thu an-seo", L"Dì-phacaich na thagh thu gu…",
+        L"Dì-phacaich an tasglann gu…"
+    }, nullptr},
+    {L"ta", false, {
+        L"பெயர்", L"மாற்றிய தேதி", L"வகை", L"அளவு",
+        L"பின்னே", L"இங்கே பிரித்தெடு", L"கோப்புறைக்குப் பிரித்தெடு…", L"தேர்ந்தெடுத்தவற்றைப் பிரித்தெடு",
+        L"தேர்ந்தெடுத்தவை", L"ரத்துசெய்", L"தேர்ந்தெடுத்தவற்றை இங்கே பிரித்தெடு", L"தேர்ந்தெடுத்தவற்றைக் கோப்புறைக்குப் பிரித்தெடு…",
+        L"காப்பகத்தைக் கோப்புறைக்குப் பிரித்தெடு…"
+    }, nullptr},
+    {L"tt", false, {
+        L"Исем", L"Үзгәртү көне", L"Төр", L"Зурлык",
+        L"Артка", L"Монда чыгару", L"Папкага чыгару…", L"Сайланганнарны чыгару",
+        L"Сайланганнар", L"Баш тарту", L"Сайланганнарны монда чыгару", L"Сайланганнарны папкага чыгару…",
+        L"Архивны папкага чыгару…"
+    }, nullptr},
+    {L"te", false, {
+        L"పేరు", L"మార్చిన తేదీ", L"రకం", L"పరిమాణం",
+        L"వెనుకకు", L"ఇక్కడ వెలికితీయండి", L"ఫోల్డర్\u200Cకు వెలికితీయండి…", L"ఎంచుకున్న వాటిని వెలికితీయండి",
+        L"ఎంచుకున్నవి", L"రద్దు చేయండి", L"ఎంచుకున్న వాటిని ఇక్కడ వెలికితీయండి", L"ఎంచుకున్న వాటిని ఫోల్డర్\u200Cకు వెలికితీయండి…",
+        L"ఆర్కైవ్\u200Cను ఫోల్డర్\u200Cకు వెలికితీయండి…"
+    }, nullptr},
+    {L"ur", true, {
+        L"نام", L"ترمیم کی تاریخ", L"قسم", L"حجم",
+        L"واپس", L"یہاں نکالیں", L"فولڈر میں نکالیں…", L"منتخب اشیا نکالیں",
+        L"منتخب", L"منسوخ کریں", L"منتخب اشیا یہاں نکالیں", L"منتخب اشیا فولڈر میں نکالیں…",
+        L"آرکائیو فولڈر میں نکالیں…"
+    }, nullptr},
+    {L"ug", true, {
+        L"ئاتى", L"ئۆزگەرتىلگەن چېسلا", L"تۈرى", L"چوڭلۇقى",
+        L"قايتىش", L"بۇ يەرگە يېشىش", L"مۇنداق ئورۇنغا يېشىش…", L"تاللانغاننى يېشىش",
+        L"تاللانغان", L"بىكار قىلىش", L"تاللانغاننى بۇ يەرگە يېشىش", L"تاللانغاننى قىسقۇچقا يېشىش…",
+        L"ئارخىپنى قىسقۇچقا يېشىش…"
+    }, nullptr},
+    {L"uz", false, {
+        L"Nomi", L"O‘zgartirilgan sana", L"Turi", L"Hajmi",
+        L"Orqaga", L"Shu yerga chiqarish", L"Jildga chiqarish…", L"Tanlanganlarni chiqarish",
+        L"Tanlanganlar", L"Bekor qilish", L"Tanlanganlarni shu yerga chiqarish", L"Tanlanganlarni jildga chiqarish…",
+        L"Arxivni jildga chiqarish…"
+    }, nullptr},
+    {L"cy", false, {
+        L"Enw", L"Dyddiad addasu", L"Math", L"Maint",
+        L"Yn ôl", L"Echdynnu yma", L"Echdynnu i…", L"Echdynnu'r dewis",
+        L"Dewis", L"Canslo", L"Echdynnu'r dewis yma", L"Echdynnu'r dewis i…",
+        L"Echdynnu'r archif i…"
+    }, nullptr},
+    {L"quz", false, {
+        L"Suti", L"Hukchasqa p'unchaw", L"Laya", L"Sayay",
+        L"Kutiy", L"Kaypi hurquy", L"Mayman hurquyta akllay…", L"Akllasqata hurquy",
+        L"Akllasqa", L"Sayachiy", L"Akllasqata kaypi hurquy", L"Akllasqata mayman hurquyta akllay…",
+        L"Waqaychasqata mayman hurquyta akllay…"
+    }, nullptr},
+    {L"ku-Arab", true, {
+        L"ناو", L"بەرواری دەستکاری", L"جۆر", L"قەبارە",
+        L"گەڕانەوە", L"لێرە دەریبکە", L"دەریبکە بۆ…", L"هەڵبژێردراوەکان دەربکە",
+        L"هەڵبژێردراوەکان", L"هەڵوەشاندنەوە", L"هەڵبژێردراوەکان لێرە دەربکە", L"هەڵبژێردراوەکان دەربکە بۆ…",
+        L"ئەرشیفەکە دەربکە بۆ…"
+    }, nullptr},
+    {L"ha", false, {
+        L"Suna", L"Ranar gyara", L"Nau’i", L"Girma",
+        L"Koma", L"Cire a nan", L"Cire zuwa…", L"Cire waɗanda aka zaɓa",
+        L"Zaɓaɓɓu", L"Soke", L"Cire waɗanda aka zaɓa a nan", L"Cire waɗanda aka zaɓa zuwa…",
+        L"Cire fayilolin da aka matse zuwa…"
+    }, nullptr},
+    {L"ig", false, {
+        L"Aha", L"Ụbọchị mgbanwe", L"Ụdị", L"Nha",
+        L"Laghachi", L"Wepụta ebe a", L"Wepụta gaa na…", L"Wepụta ihe ahọpụtara",
+        L"Ahọpụtara", L"Kagbuo", L"Wepụta ihe ahọpụtara ebe a", L"Wepụta ihe ahọpụtara gaa na…",
+        L"Wepụta faịlụ ndị akpakọtara gaa na…"
+    }, nullptr},
+    {L"xh", false, {
+        L"Igama", L"Umhla wokulungiswa", L"Uhlobo", L"Ubungakanani",
+        L"Emva", L"Khupha apha", L"Khuphela kwi…", L"Khupha ezikhethiweyo",
+        L"Ezikhethiweyo", L"Rhoxisa", L"Khupha ezikhethiweyo apha", L"Khuphela ezikhethiweyo kwi…",
+        L"Khuphela ifayile ecinezelweyo kwi…"
+    }, nullptr},
+    {L"zu", false, {
+        L"Igama", L"Idethi yokulungiswa", L"Uhlobo", L"Usayizi",
+        L"Emuva", L"Khipha lapha", L"Khiphela ku…", L"Khipha okukhethiwe",
+        L"Okukhethiwe", L"Khansela", L"Khipha okukhethiwe lapha", L"Khiphela okukhethiwe ku…",
+        L"Khiphela ifayela elicindezelwe ku…"
+    }, nullptr},
+    {L"rw", false, {
+        L"Izina", L"Itariki yahinduriweho", L"Ubwoko", L"Ingano",
+        L"Subira inyuma", L"Kura dosiye hano", L"Kura dosiye ujye muri…", L"Kura dosiye zatoranyijwe",
+        L"Izatoranyijwe", L"Hagarika", L"Kura dosiye zatoranyijwe hano", L"Kura dosiye zatoranyijwe ujye muri…",
+        L"Kura dosiye muri arikive ujye muri…"
+    }, nullptr},
+    {L"sw", false, {
+        L"Jina", L"Tarehe ya kubadilishwa", L"Aina", L"Ukubwa",
+        L"Rudi", L"Toa hapa", L"Toa kwenye…", L"Toa zilizochaguliwa",
+        L"Zilizochaguliwa", L"Ghairi", L"Toa zilizochaguliwa hapa", L"Toa zilizochaguliwa kwenye…",
+        L"Toa faili za kumbukumbu kwenye…"
+    }, nullptr},
+    {L"ky", false, {
+        L"Аты", L"Өзгөртүлгөн күнү", L"Түрү", L"Өлчөмү",
+        L"Артка", L"Бул жерге чыгаруу", L"Папкага чыгаруу…", L"Тандалгандарды чыгаруу",
+        L"Тандалгандар", L"Жокко чыгаруу", L"Тандалгандарды бул жерге чыгаруу", L"Тандалгандарды папкага чыгаруу…",
+        L"Архивди папкага чыгаруу…"
+    }, nullptr},
+    {L"mn", false, {
+        L"Нэр", L"Өөрчилсөн огноо", L"Төрөл", L"Хэмжээ",
+        L"Буцах", L"Энд задлах", L"Хавтас руу задлах…", L"Сонгосныг задлах",
+        L"Сонгосон", L"Цуцлах", L"Сонгосныг энд задлах", L"Сонгосныг хавтас руу задлах…",
+        L"Архивыг хавтас руу задлах…"
+    }, nullptr},
+    {L"pa-Arab", true, {
+        L"ناں", L"بدلن دی تاریخ", L"قسم", L"حجم",
+        L"پچھے", L"ایتھے کڈھو", L"فولڈر وچ کڈھو…", L"چُنے ہوئے کڈھو",
+        L"چُنے ہوئے", L"رد کرو", L"چُنے ہوئے ایتھے کڈھو", L"چُنے ہوئے فولڈر وچ کڈھو…",
+        L"آرکائیو فولڈر وچ کڈھو…"
+    }, nullptr},
+    {L"nso", false, {
+        L"Leina", L"Letšatši la phetogo", L"Mohuta", L"Bogolo",
+        L"Morago", L"Ntšha mo", L"Ntšhetša go…", L"Ntšha tše di kgethilwego",
+        L"Di kgethilwe", L"Khansela", L"Ntšha tše di kgethilwego mo", L"Ntšhetša tše di kgethilwego go…",
+        L"Ntšhetša faele ye e gateletšwego go…"
+    }, nullptr},
+    {L"tn", false, {
+        L"Leina", L"Letsatsi la phetogo", L"Mofuta", L"Bogolo",
+        L"Morago", L"Ntsha fano", L"Ntshetsa kwa…", L"Ntsha tse di tlhophilweng",
+        L"Tse di tlhophilweng", L"Khansela", L"Ntsha tse di tlhophilweng fano", L"Ntshetsa tse di tlhophilweng kwa…",
+        L"Ntshetsa faele e e pitlagantsweng kwa…"
+    }, nullptr},
+    {L"sd-Arab", true, {
+        L"نالو", L"تبديليءَ جي تاريخ", L"قسم", L"ماپ",
+        L"واپس", L"هتي ڪڍو", L"فولڊر ۾ ڪڍو…", L"چونڊيل شيون ڪڍو",
+        L"چونڊيل", L"رد ڪريو", L"چونڊيل شيون هتي ڪڍو", L"چونڊيل شيون فولڊر ۾ ڪڍو…",
+        L"آرڪائيو فولڊر ۾ ڪڍو…"
+    }, nullptr},
+    {L"si", false, {
+        L"නම", L"වෙනස් කළ දිනය", L"වර්ගය", L"ප්\u200Dරමාණය",
+        L"ආපසු", L"මෙතැනට උපුටා ගන්න", L"ෆෝල්ඩරයකට උපුටා ගන්න…", L"තෝරාගත් දේ උපුටා ගන්න",
+        L"තෝරාගත් දේ", L"අවලංගු කරන්න", L"තෝරාගත් දේ මෙතැනට උපුටා ගන්න", L"තෝරාගත් දේ ෆෝල්ඩරයකට උපුටා ගන්න…",
+        L"සංරක්ෂිතය ෆෝල්ඩරයකට උපුටා ගන්න…"
+    }, nullptr},
+    {L"tg", false, {
+        L"Ном", L"Санаи тағйир", L"Навъ", L"Андоза",
+        L"Бозгашт", L"Ба ин ҷо баровардан", L"Ба ҷузвдон баровардан…", L"Интихобшударо баровардан",
+        L"Интихобшуда", L"Бекор кардан", L"Интихобшударо ба ин ҷо баровардан", L"Интихобшударо ба ҷузвдон баровардан…",
+        L"Бойгониро ба ҷузвдон баровардан…"
+    }, nullptr},
+    {L"ti", false, {
+        L"ስም", L"ዝተቐየረሉ ዕለት", L"ዓይነት", L"መጠን",
+        L"ተመለስ", L"ኣብዚ ኣውጽእ", L"ናብ… ኣውጽእ", L"ዝተመርጹ ኣውጽእ",
+        L"ዝተመርጹ", L"ሰርዝ", L"ዝተመርጹ ኣብዚ ኣውጽእ", L"ዝተመርጹ ናብ… ኣውጽእ",
+        L"ዝተጸቕጠ ፋይል ናብ… ኣውጽእ"
+    }, nullptr},
+    {L"tk", false, {
+        L"Ady", L"Üýtgedilen senesi", L"Görnüşi", L"Ölçegi",
+        L"Yza", L"Şu ýere çykar", L"Bukja çykar…", L"Saýlananlary çykar",
+        L"Saýlananlar", L"Ýatyr", L"Saýlananlary şu ýere çykar", L"Saýlananlary bukja çykar…",
+        L"Arhiwi bukja çykar…"
+    }, nullptr},
+    {L"wo", false, {
+        L"Tur", L"Bés bu ñu ko soppee", L"Xeet", L"Dayo",
+        L"Dellu", L"Génne fii", L"Génne ci…", L"Génne yi ñu tànn",
+        L"Yi ñu tànn", L"Neenal", L"Génne yi ñu tànn fii", L"Génne yi ñu tànn ci…",
+        L"Génne dencukaay bi ci…"
+    }, nullptr},
+    {L"yo", false, {
+        L"Orúkọ", L"Ọjọ́ àtúnṣe", L"Irú", L"Ìwọ̀n",
+        L"Padà", L"Yọ jáde síbí", L"Yọ jáde sí…", L"Yọ àwọn tí a yàn jáde",
+        L"Tí a yàn", L"Fagilé", L"Yọ àwọn tí a yàn jáde síbí", L"Yọ àwọn tí a yàn jáde sí…",
+        L"Yọ àkójọpọ̀ fáìlì jáde sí…"
+    }, nullptr},
+    {L"chr", false, {
+        L"ᏚᏙᎥᎢ", L"ᎢᎦ ᎯᏁᏟᏴᎾ", L"ᎢᏳᏍᏗ", L"ᎢᎩᏓ",
+        L"ᎠᏏᎾᎦᏘ", L"ᎠᎭᏂ ᏱᎬᏅᏕᏍᏗ", L"ᏱᎬᏅᏕᏍᏗ…", L"ᏗᏑᏰᏓ ᏱᎬᏅᏕᏍᏗ",
+        L"ᏗᏑᏰᏓ", L"ᎠᏎᏒᏗ", L"ᏗᏑᏰᏓ ᎠᎭᏂ ᏱᎬᏅᏕᏍᏗ", L"ᏗᏑᏰᏓ ᏱᎬᏅᏕᏍᏗ…",
+        L"ᏗᏴᏈᏛᎥᏍᎩ ᎭᏑᏯᎩ"
+    }, nullptr},
+    {L"iu-Latn", false, {
+        L"Atiq", L"Ulluq asijjiqtuq", L"Qanuittuuninga", L"Anininga",
+        L"Utimut", L"Maani angillitirli", L"Puurvimmut angillitirli…", L"Nirulussat angillitirli",
+        L"Nirulussat", L"Qujanaarli", L"Nirulussat maani angillitirli", L"Nirulussat puurvimmut angillitirli…",
+        L"Puurvik niruarli"
+    }, nullptr},
+    {L"quc", false, {
+        L"Okb’i’aj", L"Uq’ijol uk’exanik", L"Ub’antajik", L"Unimal",
+        L"Tzalijsab’al", L"Resaxik waral", L"Resaxik pa k’olkemchak…", L"Resaxik le cha’om",
+        L"Cha’om", L"Uq’atexik", L"Resaxik le cha’om waral", L"Resaxik le cha’om pa k’olkemchak…",
+        L"Ucha’ik k’olkemchak"
+    }, nullptr},
+    {L"prs", true, {
+        L"نام", L"تاریخ تغییر", L"نوع", L"اندازه",
+        L"برگشت", L"استخراج در اینجا", L"استخراج در فولدر…", L"استخراج موارد انتخاب\u200Cشده",
+        L"انتخاب\u200Cشده", L"لغو", L"استخراج موارد انتخاب\u200Cشده در اینجا", L"استخراج موارد انتخاب\u200Cشده در فولدر…",
+        L"استخراج آرشیف در فولدر…"
+    }, nullptr},
+};
+static std::atomic<int> language{0}; // English fallback.
+
+static bool SameTag(std::wstring_view tag, PCWSTR other) {
+    const size_t length = wcslen(other);
+    return tag.size() == length &&
+        CompareStringOrdinal(tag.data(),static_cast<int>(tag.size()),other,
+            static_cast<int>(length),TRUE) == CSTR_EQUAL;
+}
+static int FindCatalog(std::wstring_view tag) {
+    for (int i = 0; i < static_cast<int>(_countof(kCatalogs)); ++i)
+        if (SameTag(tag,kCatalogs[i].tag)) return i;
+    return -1;
+}
+static int FindLanguage(std::wstring_view tag) {
+    struct Alias { PCWSTR source; PCWSTR catalog; };
+    static constexpr Alias aliases[] = {
+        {L"zh-CN",L"zh-Hans"}, {L"zh-SG",L"zh-Hans"}, {L"zh-CHS",L"zh-Hans"},
+        {L"zh-TW",L"zh-Hant"}, {L"zh-HK",L"zh-Hant"}, {L"zh-MO",L"zh-Hant"},
+        {L"zh-CHT",L"zh-Hant"}, {L"zh",L"zh-Hans"},
+        {L"pt",L"pt-BR"}, {L"sr",L"sr-Cyrl"}, {L"no",L"nb"},
+        {L"iw",L"he"}, {L"in",L"id"}, {L"tl",L"fil"},
+        {L"pa-PK",L"pa-Arab"}, {L"sd",L"sd-Arab"}, {L"ku-IQ",L"ku-Arab"},
+        {L"ckb",L"ku-Arab"}, {L"fa-AF",L"prs"}, {L"qu",L"quz"},
+        {L"iu",L"iu-Latn"}, {L"qut",L"quc"},
+    };
+    while (!tag.empty()) {
+        const int found = FindCatalog(tag);
+        if (found >= 0) return found;
+        for (const auto & alias : aliases)
+            if (SameTag(tag,alias.source)) return FindCatalog(alias.catalog);
+        const size_t separator = tag.rfind(L'-');
+        if (separator == std::wstring_view::npos) break;
+        tag = tag.substr(0,separator);
+    }
+    return -1;
+}
+static int WindowsLanguage() {
+    ULONG count = 0, chars = 0;
+    if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME,&count,nullptr,&chars) && chars > 1) {
+        std::vector<wchar_t> names(chars);
+        if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME,&count,names.data(),&chars)) {
+            // Win32 returns a double-NUL terminated list in preference order.
+            for (PCWSTR tag = names.data(); *tag; tag += wcslen(tag) + 1) {
+                const int match = FindLanguage(tag);
+                if (match >= 0) return match;
+            }
+        }
+    }
+    // The UI language ID is a fallback when the preferred-language API fails.
+    wchar_t name[LOCALE_NAME_MAX_LENGTH]{};
+    const LANGID id = GetUserDefaultUILanguage();
+    if (LCIDToLocaleName(MAKELCID(id,SORT_DEFAULT),name,_countof(name),0)) {
+        const int match = FindLanguage(name);
+        if (match >= 0) return match;
+    }
+    return 0;
+}
+static void LoadLanguage() {
+    const auto setting = ArchivePreviewSettings::ReadText(L"Preview.Language");
+    const int manual = FindLanguage(setting);
+    language.store(manual >= 0 ? manual : WindowsLanguage(),std::memory_order_relaxed);
+}
 static int Language() {
-    const int selected = ArchivePreviewOptions::uiLanguage.load(std::memory_order_relaxed);
-    if (selected) return selected;
-    return PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_SPANISH?1:2;
+    return language.load(std::memory_order_relaxed);
+}
+static PCWSTR LanguageTag() {
+    return kCatalogs[Language()].tag;
+}
+static UINT TextDirection() {
+    return kCatalogs[Language()].rightToLeft ? DT_RTLREADING : 0;
+}
+static UINT MenuDirection() {
+    return kCatalogs[Language()].rightToLeft ? TPM_LAYOUTRTL : 0;
 }
 static PCWSTR Get(Id id) {
-    const bool spanish = Language() == 1;
-    switch (id) {
-      case Id::ColumnName: return spanish?L"Nombre":L"Name";
-      case Id::ColumnDate: return spanish?L"Modificación":L"Modified";
-      case Id::ColumnType: return spanish?L"Tipo":L"Type";
-      case Id::ColumnSize: return spanish?L"Tamaño":L"Size";
-      case Id::Back: return spanish?L"Atrás":L"Back";
-      case Id::ExtractHere: return spanish?L"Extraer aquí":L"Extract here";
-      case Id::ExtractTo: return spanish?L"Extraer en…":L"Extract to…";
-      case Id::ExtractSelected: return spanish?L"Extraer selección":L"Extract selected";
-      case Id::Selected: return spanish?L"Selección":L"Selected";
-      case Id::Cancel: return spanish?L"Cancelar":L"Cancel";
-      case Id::SelectedHere: return spanish?L"Extraer selección aquí":L"Extract selected here";
-      case Id::SelectedTo: return spanish?L"Extraer selección en…":L"Extract selected to...";
-      case Id::PickFolder: return spanish?L"Extraer archivo en…":L"Extract archive to...";
-    }
+    const auto & catalog = kCatalogs[Language()];
+    const size_t index = static_cast<size_t>(id);
+    if (index < catalog.controls.size()) return catalog.controls[index];
+    if (index < static_cast<size_t>(Id::Count))
+        return (catalog.notices ? *catalog.notices : kNotices_en)[index - catalog.controls.size()];
     return L"";
 }
 }
@@ -945,13 +1982,26 @@ static PCWSTR Get(Id id) {
 namespace ArchivePreviewIcons {
 static std::atomic < unsigned > liveCopies{0};
 static constexpr unsigned kMaxCopies = 512;
+// The cap includes in-flight reservations. Count owned handles separately so
+// a failed capture or a reservation alone cannot raise the measured peak.
+static std::atomic<unsigned> ownedCopies{0};
+static std::atomic<unsigned> peakCopies{0};
+static std::atomic<uint64_t> rejectedAtCap{0};
+static std::atomic<uint64_t> captureFailures{0};
 struct Icon {
     HICON handle{};
-    explicit Icon(HICON value):handle(value){}
+    explicit Icon(HICON value):handle(value) {
+        const unsigned owned = ownedCopies.fetch_add(1,std::memory_order_relaxed) + 1;
+        if (!ArchivePreviewDiagnostics::Enabled()) return;
+        unsigned peak = peakCopies.load(std::memory_order_relaxed);
+        while (peak < owned &&
+            !peakCopies.compare_exchange_weak(peak,owned,std::memory_order_relaxed)) {}
+    }
     Icon(const Icon &) = delete;
     Icon & operator=(const Icon &) = delete;
     ~Icon() {
         if (handle) DestroyIcon(handle);
+        ownedCopies.fetch_sub(1,std::memory_order_relaxed);
         liveCopies.fetch_sub(1,std::memory_order_relaxed);
     }
 };
@@ -959,85 +2009,247 @@ static std::shared_ptr < Icon > Capture(HIMAGELIST list,int index) {
     if (!list || index < 0) return {};
     if (liveCopies.fetch_add(1,std::memory_order_relaxed) >= kMaxCopies) {
         liveCopies.fetch_sub(1,std::memory_order_relaxed);
+        if (ArchivePreviewDiagnostics::Enabled())
+            rejectedAtCap.fetch_add(1,std::memory_order_relaxed);
         return {};
     }
     HICON handle = ImageList_GetIcon(list,index,ILD_TRANSPARENT);
     if (!handle) {
         liveCopies.fetch_sub(1,std::memory_order_relaxed);
+        if (ArchivePreviewDiagnostics::Enabled())
+            captureFailures.fetch_add(1,std::memory_order_relaxed);
         return {};
     }
     auto * image = new(std::nothrow) Icon(handle);
     if (!image) {
         DestroyIcon(handle);
         liveCopies.fetch_sub(1,std::memory_order_relaxed);
+        if (ArchivePreviewDiagnostics::Enabled())
+            captureFailures.fetch_add(1,std::memory_order_relaxed);
         return {};
     }
     return std::shared_ptr < Icon >(image);
 }
+static void LogStats(PCWSTR source) {
+    if (!ArchivePreviewDiagnostics::Enabled()) return;
+    const unsigned owned = ownedCopies.load(std::memory_order_relaxed);
+    Wh_Log(L"[AP icons] source=%s pid=%lu live=%u peak=%u cap=%u rejected_at_cap=%llu capture_failures=%llu",
+        source,GetCurrentProcessId(),owned,
+        std::max(owned,peakCopies.load(std::memory_order_relaxed)),kMaxCopies,
+        static_cast<unsigned long long>(rejectedAtCap.load(std::memory_order_relaxed)),
+        static_cast<unsigned long long>(captureFailures.load(std::memory_order_relaxed)));
+}
 }
 
 namespace ArchivePreviewColumns {
-// Session visibility overrides use the same localized labels as the headers.
-static bool VisibilityMenu(HWND owner,POINT point) {
-    if(point.x==-1 && point.y==-1){
-        RECT bounds{};GetWindowRect(owner,&bounds);
-        point={bounds.left+8,bounds.bottom};
+constexpr std::array<int,4> kMinimumDips{150,100,64,60};
+constexpr std::array<int,4> kDefaultDips{150,150,120,94};
+constexpr int kMaxWidthDips = 4096;
+constexpr PCWSTR kWidthKeys[] = {L"NameWidth",L"DateWidth",L"TypeWidth",L"SizeWidth"};
+constexpr PCWSTR kVisibilityKeys[] = {nullptr,L"DateLayoutVisibility",L"TypeLayoutVisibility",L"SizeLayoutVisibility"};
+constexpr PCWSTR kHideSettings[] = {nullptr,L"DisplayColumns.HideDateModified",L"DisplayColumns.HideType",L"DisplayColumns.HideSize"};
+
+struct Change {
+    DWORD column{};
+    int value{};
+    DWORD visibility{};
+};
+static bool Valid(const Change & change) {
+    return change.column < kMinimumDips.size() &&
+        (change.visibility == 1 ? change.column != 0 && (change.value == 0 || change.value == 1) :
+         change.visibility == 0 && change.value >= kMinimumDips[change.column] && change.value <= kMaxWidthDips);
+}
+
+static std::mutex preferencesMutex;
+static std::array<int,4> preferredDips{};
+// Keep local changes usable if both the storage API and the broker are unavailable.
+static std::array<bool,4> unsavedWidth{};
+static std::array<bool,4> unsavedVisibility{};
+struct ReloadResult { bool widths{}; bool visibility{}; };
+
+static ReloadResult Load(bool settingsChanged = false) {
+    std::lock_guard<std::mutex> lock(preferencesMutex);
+    ReloadResult result;
+    unsigned visible = 1;
+    const unsigned current = ArchivePreviewOptions::visibleColumns.load();
+    for (unsigned i = 0; i < preferredDips.size(); ++i) {
+        if (!unsavedWidth[i]) {
+            const int saved = Wh_GetIntValue(kWidthKeys[i],0);
+            const int width = Valid({i,saved,0}) ? saved : 0;
+            result.widths |= std::exchange(preferredDips[i],width) != width;
+        }
+        if (i == 0) continue;
+        const unsigned bit = 1u << i;
+        if (unsavedVisibility[i] && !settingsChanged) {
+            visible |= current & bit;
+            continue;
+        }
+        const bool defaultVisible = Wh_GetIntSetting(kHideSettings[i]) == 0;
+        const int saved = Wh_GetIntValue(kVisibilityKeys[i],0);
+        // A header override is relative to the Windhawk setting at the time.
+        // Changing that setting takes precedence over the previous override.
+        const int overrideForDefault = defaultVisible ? 2 : 1;
+        if (settingsChanged && saved && saved != overrideForDefault)
+            Wh_DeleteValue(kVisibilityKeys[i]);
+        unsavedVisibility[i] = false;
+        if (saved == overrideForDefault ? !defaultVisible : defaultVisible) visible |= bit;
     }
-    HMENU menu=CreatePopupMenu();
-    if(!menu)return false;
-    using Id=ArchivePreviewText::Id;
-    const Id labels[]={Id::ColumnDate,Id::ColumnType,Id::ColumnSize};
-    std::atomic<bool>* options[]={&ArchivePreviewOptions::showDate,
-        &ArchivePreviewOptions::showType,&ArchivePreviewOptions::showSize};
-    for(unsigned i=0;i<3;++i)
-        AppendMenuW(menu,MF_STRING | (options[i]->load()?MF_CHECKED:MF_UNCHECKED),
-            i+1,ArchivePreviewText::Get(labels[i]));
-    const UINT command=TrackPopupMenuEx(menu,TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON,
-        point.x,point.y,owner,nullptr);
-    DestroyMenu(menu);
-    if(command<1 || command>3)return false;
-    auto & option=*options[command-1];option.store(!option.load());
+    result.visibility = ArchivePreviewOptions::visibleColumns.exchange(visible) != visible;
+    return result;
+}
+
+static void ApplyLocked(const Change & change, bool saved) {
+    const auto i = change.column;
+    if (change.visibility) {
+        const unsigned bit = 1u << i;
+        if (change.value) ArchivePreviewOptions::visibleColumns.fetch_or(bit);
+        else ArchivePreviewOptions::visibleColumns.fetch_and(~bit);
+        unsavedVisibility[i] = !saved;
+    } else {
+        preferredDips[i] = change.value;
+        unsavedWidth[i] = !saved;
+    }
+}
+
+static bool Save(const Change & change) {
+    if (!Valid(change)) return false;
+    std::lock_guard<std::mutex> lock(preferencesMutex);
+    const auto i = change.column;
+    int value = change.value;
+    PCWSTR key = kWidthKeys[i];
+    if (change.visibility) {
+        const bool defaultVisible = Wh_GetIntSetting(kHideSettings[i]) == 0;
+        key = kVisibilityKeys[i];
+        value = value == defaultVisible ? 0 : (value ? 1 : 2);
+    }
+    if (!Wh_SetIntValue(key,value)) return false;
+    ApplyLocked(change,true);
     return true;
 }
-struct Widths {std::array<int,4> dips{};bool custom{};};
-static std::mutex mutex;
-static Widths saved;
-static Widths Snapshot(){std::lock_guard<std::mutex> lock(mutex);return saved;}
-static void Store(const Widths & value){std::lock_guard<std::mutex> lock(mutex);saved=value;}
-static void FitViewport(HWND list) {
-    static thread_local bool fitting=false;
-    if(fitting || !IsWindow(list))return;
-    fitting=true;
-    const int offset=GetScrollPos(list,SB_HORZ);
-    if(offset)ListView_Scroll(list,-offset,0);
-    ShowScrollBar(list,SB_HORZ,FALSE);
-    RECT client{};GetClientRect(list,&client);
-    HWND header=ListView_GetHeader(list);
-    const int count=header?Header_GetItemCount(header):0;
-    int total=0;
-    for(int i=0;i<count;++i)total+=ListView_GetColumnWidth(list,i);
-    int excess=std::max(0,total-static_cast<int>(client.right-client.left));
-    // Take the scrollbar allowance from Name first, retaining the Size cell.
-    for(int i=0;i<count && excess>0;++i){
-        const int width=ListView_GetColumnWidth(list,i);
-        const int take=std::min(excess,std::max(0,width-1));
-        if(take)ListView_SetColumnWidth(list,i,width-take);
-        excess-=take;
-    }
-    ShowScrollBar(list,SB_HORZ,FALSE);
-    fitting=false;
+
+static void UseForSession(const Change & change) {
+    if (!Valid(change)) return;
+    std::lock_guard<std::mutex> lock(preferencesMutex);
+    ApplyLocked(change,false);
+    Wh_Log(L"Archive Preview could not save the column preference; using it for this session");
 }
-static void Fit(std::vector<int> & widths,int available,int requestedMinimum) {
-    if(widths.empty())return;
-    available=std::max(1,available);
-    const int minimum=std::max(1,std::min(requestedMinimum,available/static_cast<int>(widths.size())));
-    int total=0;for(auto & width:widths){width=std::max(minimum,width);total+=width;}
-    int excess=std::max(0,total-available);
-    for(size_t i=0;i<widths.size() && excess;++i){
-        const int take=std::min(excess,widths[i]-minimum);widths[i]-=take;excess-=take;total-=take;
+
+static bool VisibilityMenu(HWND owner, POINT point, Change & change) {
+    if (point.x == -1 && point.y == -1) {
+        RECT bounds{};
+        GetWindowRect(owner,&bounds);
+        point = {bounds.left + 8,bounds.bottom};
     }
-    // Give all spare panel width to Name; preserve other column widths.
-    if(total<available)widths.front()+=available-total;
+    HMENU menu = CreatePopupMenu();
+    if (!menu) return false;
+    using Id = ArchivePreviewText::Id;
+    const Id labels[] = {Id::ColumnDate,Id::ColumnType,Id::ColumnSize};
+    for (unsigned i = 1; i <= 3; ++i)
+        AppendMenuW(menu,MF_STRING | (ArchivePreviewOptions::ShowColumn(i) ? MF_CHECKED : MF_UNCHECKED),
+            i,ArchivePreviewText::Get(labels[i - 1]));
+    const UINT command = TrackPopupMenuEx(menu,TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON | ArchivePreviewText::MenuDirection(),
+        point.x,point.y,owner,nullptr);
+    DestroyMenu(menu);
+    if (command < 1 || command > 3) return false;
+    change = {command,!ArchivePreviewOptions::ShowColumn(command),1};
+    return true;
+}
+
+static int Px(UINT dpi, int dips) {
+    return MulDiv(dips,dpi ? dpi : 96,96);
+}
+static int ViewportWidth(HWND list) {
+    RECT client{};
+    GetClientRect(list,&client);
+    return std::max(0,static_cast<int>(client.right - client.left));
+}
+static int HorizontalOffset(HWND list) {
+    SCROLLINFO scroll{sizeof(scroll),SIF_POS};
+    return GetScrollInfo(list,SB_HORZ,&scroll) ? scroll.nPos : 0;
+}
+static void HideScrollbar(HWND list) {
+    if (GetWindowLongPtrW(list,GWL_STYLE) & WS_HSCROLL)
+        ShowScrollBar(list,SB_HORZ,FALSE);
+}
+static int DragWidth(HWND list, UINT dpi, unsigned kind, int width) {
+    const int minimum = Px(dpi,kMinimumDips[kind]);
+    // A compressed column may already be narrower than its drag minimum.
+    // Wait until the pane can fit the minimum before changing that width.
+    const int maximum = ArchivePreviewOptions::hideHorizontalScrollbar.load() ?
+        std::min(ViewportWidth(list),Px(dpi,kMaxWidthDips)) : Px(dpi,kMaxWidthDips);
+    return maximum < minimum ? -1 : std::clamp(width,minimum,maximum);
+}
+
+static std::array<int,4> Fit(int available, const std::array<int,4> & preferred,
+                             const std::array<int,4> & minimum, bool hideScroll, bool autoName) {
+    std::array<int,4> widths{};
+    widths[0] = std::min(preferred[0],available);
+    if (!hideScroll) widths[0] = std::max(widths[0],minimum[0]);
+    int remaining = available - widths[0];
+    int expandable = 0;
+    bool collapsed = false;
+    for (size_t i = 1; i < widths.size(); ++i) {
+        if (minimum[i] == 0) continue;
+        if (hideScroll && minimum[i] > remaining) {
+            collapsed = true;
+            continue;
+        }
+        widths[i] = minimum[i];
+        remaining -= widths[i];
+        expandable += preferred[i] - minimum[i];
+    }
+    int growth = std::clamp(remaining,0,expandable);
+    remaining -= growth;
+    for (size_t i = 1; i < widths.size() && expandable > 0; ++i) {
+        if (!widths[i]) continue;
+        const int extra = preferred[i] - minimum[i];
+        const int add = growth * extra / expandable;
+        widths[i] += add;
+        growth -= add;
+        expandable -= extra;
+    }
+    if ((autoName || collapsed) && remaining > 0) widths[0] += remaining;
+    return widths;
+}
+
+template<typename Kind>
+static void Layout(HWND list, UINT dpi, const std::vector<Kind> & columns) {
+    static thread_local bool layingOut = false;
+    if (layingOut || columns.empty()) return;
+    layingOut = true;
+    std::array<int,4> saved;
+    {
+        std::lock_guard<std::mutex> lock(preferencesMutex);
+        saved = preferredDips;
+    }
+    std::array<int,4> preferred{}, minimum{};
+    for (const auto kind : columns) {
+        const auto i = static_cast<unsigned>(kind);
+        minimum[i] = Px(dpi,kMinimumDips[i]);
+        preferred[i] = Px(dpi,saved[i] ? saved[i] : kDefaultDips[i]);
+    }
+    const bool hideScroll = ArchivePreviewOptions::hideHorizontalScrollbar.load();
+    if (hideScroll) {
+        const int offset = HorizontalOffset(list);
+        if (offset) ListView_Scroll(list,-offset,0);
+    }
+    // A horizontal bar can change whether a vertical bar is needed.
+    for (int pass = 0; pass < 2; ++pass) {
+        const int available = ViewportWidth(list);
+        const auto widths = Fit(available,preferred,minimum,hideScroll,!saved[0]);
+        // Shrink existing columns before expanding any to avoid a transient bar.
+        for (const bool grow : {false,true}) {
+            for (int i = 0; i < static_cast<int>(columns.size()); ++i) {
+                const int width = widths[static_cast<unsigned>(columns[i])];
+                const int current = ListView_GetColumnWidth(list,i);
+                if (width != current && (width > current) == grow)
+                    ListView_SetColumnWidth(list,i,width);
+            }
+        }
+        if (hideScroll) HideScrollbar(list);
+        if (ViewportWidth(list) == available) break;
+    }
+    layingOut = false;
 }
 }
 
@@ -1090,40 +2302,60 @@ namespace ArchivePreviewPathSafety {
             if ( * ch == L':' || * ch == L'/') return false;
         return true;
     }
-    static bool ValidPathComponents(const std::filesystem::path & path,
-                                    bool lastMustBeDirectory,
-                                    bool lockAncestors,
-                                    std::vector < HANDLE >  * retained = nullptr) {
+    // Call only for absolute local drive paths whose components are validated.
+    static std::wstring ExtendedLocalPath(const std::wstring & path) {
+        return L"\\\\?\\"+path;
+    }
+    static HRESULT CheckPathComponents(const std::filesystem::path & path,
+                                       bool lastMustBeDirectory,
+                                       bool lockAncestors,
+                                       std::vector < HANDLE >  * retained,
+                                       bool extendedLength) {
         const std::wstring value = path.wstring();
-        if (!PlainDrivePath(value.c_str()) || !path.is_absolute()) return false;
+        if (!PlainDrivePath(value.c_str()) || !path.is_absolute()) return E_ACCESSDENIED;
         const wchar_t root[4] = {value[0],L':',L'\\',L'\0'};
-        if (GetDriveTypeW(root) != DRIVE_FIXED) return false;
+        if (GetDriveTypeW(root) != DRIVE_FIXED) return E_ACCESSDENIED;
         std::filesystem::path cursor = path.root_path();
         auto parts = path.relative_path();
-        if (parts.empty()) return false;
+        if (parts.empty()) return E_ACCESSDENIED;
         const size_t count = static_cast < size_t > (std::distance(parts.begin(),parts.end()));
         size_t index = 0;
         for (const auto & component:parts) {
             const std::wstring name = component.wstring();
-            if (name.empty() || name == L"." || name == L"..") return false;
+            if (name.empty() || name == L"." || name == L"..") return E_ACCESSDENIED;
             cursor /= component;
             const bool isLast = (++index == count);
-            HANDLE handle = CreateFileW(cursor.c_str(),FILE_READ_ATTRIBUTES,
+            const std::wstring extended = extendedLength ? ExtendedLocalPath(cursor.native()) :
+                std::wstring{};
+            const PCWSTR openPath = extendedLength ? extended.c_str() : cursor.c_str();
+            HANDLE handle = CreateFileW(openPath,FILE_READ_ATTRIBUTES,
                 FILE_SHARE_READ | FILE_SHARE_WRITE | (lockAncestors?0:FILE_SHARE_DELETE),
                 nullptr,OPEN_EXISTING,
                 FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
-            if (handle == INVALID_HANDLE_VALUE) return false;
+            if (handle == INVALID_HANDLE_VALUE) return HRESULT_FROM_WIN32(GetLastError());
             FILE_ATTRIBUTE_TAG_INFO info{};
-            const bool good = GetFileInformationByHandleEx(handle,FileAttributeTagInfo,
-                & info,sizeof(info)) && !(info.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
+            HRESULT result = E_ACCESSDENIED;
+            if (!GetFileInformationByHandleEx(handle,FileAttributeTagInfo,&info,sizeof(info)))
+                result = HRESULT_FROM_WIN32(GetLastError());
+            else if (!(info.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
                 ((!isLast || lastMustBeDirectory)
                     ? (info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0
-                    : (info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0);
-            if (!good) {CloseHandle(handle);return false;}
+                    : (info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0))
+                result = S_OK;
+            if (FAILED(result)) {
+                CloseHandle(handle);
+                return result;
+            }
             if (lockAncestors && retained) retained->push_back(handle);
             else CloseHandle(handle);
         }
-        return true;
+        return S_OK;
+    }
+    static bool ValidPathComponents(const std::filesystem::path & path,
+                                    bool lastMustBeDirectory,
+                                    bool lockAncestors,
+                                    std::vector < HANDLE >  * retained = nullptr) {
+        return SUCCEEDED(CheckPathComponents(path,lastMustBeDirectory,lockAncestors,retained,false));
     }
 }
 
@@ -1250,6 +2482,7 @@ static constexpr DWORD ARCHIVE_BROKER_BROWSER_EXTRACT_SELECTED_HERE = 17;
 // the matching Explorer window. Some Windows stream previewers pass only a
 // basename through STATSTG.pwcsName, never a filesystem path.
 static constexpr DWORD ARCHIVE_BROKER_RESOLVE_SELECTED_PATH = 18;
+static constexpr DWORD ARCHIVE_BROKER_SAVE_COLUMN = 19;
 // Shared popup IDs are local HWND menu IDs, never sent over the named pipe.
 static constexpr UINT kSelectedMenuHere = 1101;
 static constexpr UINT kSelectedMenuTo = 1102;
@@ -1283,6 +2516,8 @@ static constexpr UINT ARCHIVE_BROWSER_SELECTION_LOST = WM_APP + 198;
 static constexpr UINT ARCHIVE_BROWSER_CANCEL_FROM_FOOTER = WM_APP + 199;
 // Broker sends only a scalar selection count and matching anchor HWND.
 static constexpr UINT ARCHIVE_BROWSER_SELECTED_COUNT = WM_APP + 200;
+// Whole-archive hotkeys use the same Preview Host actions as the toolbar.
+static constexpr UINT ARCHIVE_BROWSER_EXTRACT_ARCHIVE = WM_APP + 209;
 static WPARAM ArchiveRequestUiToken(const GUID & id) {
     const auto * data = reinterpret_cast < const BYTE *  > ( & id);
     uint64_t hash = 14695981039346656037ULL;
@@ -1309,6 +2544,12 @@ struct ArchiveBrokerWireHeader {
     DWORD itemCount;
     GUID requestId{};  // generated once; retries must reuse this identifier
 };
+struct ArchiveBrokerColumnChange {
+    uint64_t previewWindow{};
+    ArchivePreviewColumns::Change change{};
+    DWORD reserved{};
+};
+static_assert(sizeof(ArchiveBrokerColumnChange) == 24);
 struct ArchiveBrokerOperationStatusReply {
     HRESULT lookup;
     HRESULT result;
@@ -1379,6 +2620,37 @@ inline HRESULT ArchiveReadAllWithDeadline(HANDLE pipe, void * output, DWORD coun
     }
     return S_OK;
 }
+// Preview Host can read Windhawk settings but a low-integrity token may be
+// unable to write them. Send only a bounded column change to the same broker.
+static void ArchiveSaveFallbackColumn(HWND preview, const ArchivePreviewColumns::Change & change) {
+    using namespace ArchivePreviewColumns;
+    if (!Valid(change) || Save(change)) return;
+    std::wstring pipeName;
+    if (SUCCEEDED(ArchiveBrokerPipeName(pipeName))) {
+        HANDLE pipe = CreateFileW(pipeName.c_str(),GENERIC_READ | GENERIC_WRITE,0,nullptr,
+            OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+        if (pipe != INVALID_HANDLE_VALUE) {
+            const ArchiveBrokerWireHeader header{ARCHIVE_BROKER_MAGIC,ARCHIVE_BROKER_SAVE_COLUMN,0,0,{}};
+            const ArchiveBrokerColumnChange request{reinterpret_cast<UINT_PTR>(preview),change};
+            HRESULT result = E_FAIL;
+            const bool received = SUCCEEDED(ArchiveWriteAll(pipe,&header,sizeof(header))) &&
+                SUCCEEDED(ArchiveWriteAll(pipe,&request,sizeof(request))) &&
+                SUCCEEDED(ArchiveReadAllWithDeadline(pipe,&result,sizeof(result),GetTickCount64() + 300));
+            if (received) {
+                const DWORD ack = ARCHIVE_BROKER_REPLY_ACK;
+                ArchiveWriteAll(pipe,&ack,sizeof(ack));
+            }
+            CloseHandle(pipe);
+            if (received && SUCCEEDED(result)) {
+                std::lock_guard<std::mutex> lock(preferencesMutex);
+                ApplyLocked(change,true);
+                return;
+            }
+        }
+    }
+    UseForSession(change);
+}
+
 inline HRESULT ArchiveSendBrokerCommand(DWORD command, const std::wstring & archive,
                                         const std::vector < std::wstring >  & paths,
                                         GUID * acceptedRequestId = nullptr) {
@@ -1653,6 +2925,7 @@ static constexpr size_t kMaxFallbackPages = 40; // 200k entries, bounded recover
 
 static HINSTANCE g_module = nullptr;
 static std::atomic < long > g_objects{0};
+static std::atomic < long > g_liveArchiveHandlers{0};
 static std::atomic < ULONGLONG > g_nextPollSerial{1};
 // Serializing only within one handler is insufficient: Unload's old worker
 // can finish after the next handler attaches the same archive to a reused HWND.
@@ -1830,6 +3103,9 @@ struct Column {
     int sortColumn{};
     bool sortAscending{true};
     bool populated{};
+    ULONGLONG archiveBytes{};
+    unsigned metadataMask{~0u};
+    unsigned failedMetadataMask{~0u};
     size_t page{};
     bool hasNextPage{};
     Column() = default;
@@ -2179,6 +3455,10 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         PIDLIST_ABSOLUTE folderId{};
         size_t page{};
         size_t previousPage{SIZE_MAX};
+        ArchivePreviewOptions::MetadataPolicy metadataPolicy{};
+        ULONGLONG archiveBytes{};
+        unsigned metadataMask{};
+        bool refreshMetadata{};
         std::vector<Entry> entries;
         HIMAGELIST icons{}; // system-owned image list, never destroy
         bool hasNextPage{};
@@ -2229,10 +3509,10 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                      static_cast<WPARAM>(job->serial), 0);
         return 0;
     }
-    void QueueFallback(Column& col, size_t previousPage = SIZE_MAX) {
+    void QueueFallback(Column& col, size_t previousPage = SIZE_MAX, bool refreshMetadata = false) {
         if (terminalLoadFailure_ || fallbackLoadFailed_ ||
             g_hostShutdown.load(std::memory_order_acquire) ||
-            col.populated || !window_ || !archiveId_ || !col.folderId) return;
+            (col.populated && !refreshMetadata) || !window_ || !archiveId_ || !col.folderId) return;
         if (fallbackJob_ && fallbackJob_->list == col.list &&
             fallbackJob_->page == col.page) return;
         if (fallbackJob_) fallbackJob_->cancelled.store(true, std::memory_order_release);
@@ -2245,6 +3525,9 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         job->folderId = ILCloneFull(col.folderId);
         job->page = col.page;
         job->previousPage = previousPage;
+        job->metadataPolicy = ArchivePreviewOptions::MetadataSnapshot();
+        job->refreshMetadata = refreshMetadata;
+        job->metadataMask = job->metadataPolicy.ForArchive(col.archiveBytes);
         if (!job->archiveId || !job->folderId) {
             fallbackLoadFailed_ = true;
             error_ = L"Not enough memory for recovery enumeration.";
@@ -2288,10 +3571,19 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             }
         }
         if (!col || cols_.empty() || cols_.back().get() != col) return;
+        if (SUCCEEDED(job->result) &&
+            job->metadataMask != ArchivePreviewOptions::MetadataMask(job->archiveBytes)) {
+            QueueFallback(*col,job->previousPage,job->refreshMetadata);
+            return;
+        }
         if (FAILED(job->result)) {
             // Cancellation is not an archive-format failure.
             if (job->result == HRESULT_FROM_WIN32(ERROR_CANCELLED)) return;
-            if (job->previousPage != SIZE_MAX) {
+            if (job->refreshMetadata) {
+                col->failedMetadataMask = job->metadataMask;
+                col->populated = true;
+                SetStatus(L"Could not reload archive details.");
+            } else if (job->previousPage != SIZE_MAX) {
                 col->page = job->previousPage;
                 col->populated = true;
                 SetStatus(L"Could not load this recovery page.");
@@ -2309,6 +3601,20 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             GetCurrentProcessId(),this,col->list,job->entries.size());
         diagnosticPending_ = true;
         fallbackLoadFailed_ = false;
+        std::unordered_set<std::wstring> selected;
+        std::wstring focused, top;
+        if (job->refreshMetadata && col->list) {
+            const auto nameAt = [&](int row) -> std::wstring {
+                return row >= 0 && static_cast<size_t>(row) < col->entries.size() ?
+                    col->entries[row].name : std::wstring{};
+            };
+            for (int row : SelectedIndices()) selected.insert(nameAt(row));
+            focused = nameAt(ListView_GetNextItem(col->list,-1,LVNI_FOCUSED));
+            top = nameAt(ListView_GetTopIndex(col->list));
+        }
+        col->archiveBytes = job->archiveBytes;
+        col->metadataMask = job->metadataMask;
+        col->failedMetadataMask = ~0u;
         col->entries = std::move(job->entries);
         OrderFallbackRows(*col);
         col->hasNextPage = job->hasNextPage;
@@ -2317,6 +3623,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         if (col->list && IsWindow(col->list)) {
             SendMessageW(col->list, WM_SETREDRAW, FALSE, 0);
             ListView_DeleteAllItems(col->list);
+            int topRow = -1;
             for (int i = 0; i < static_cast<int>(col->entries.size()); ++i) {
                 LVITEMW row{};
                 row.mask = LVIF_TEXT | LVIF_PARAM;
@@ -2324,7 +3631,15 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                 row.pszText = const_cast<LPWSTR>(col->entries[i].name.c_str());
                 row.lParam = i;
                 ListView_InsertItem(col->list, &row);
+                if (job->refreshMetadata) {
+                    const auto & name = col->entries[i].name;
+                    const UINT state = (selected.count(name) ? LVIS_SELECTED : 0) |
+                        (name == focused ? LVIS_FOCUSED : 0);
+                    if (state) ListView_SetItemState(col->list,i,state,LVIS_SELECTED | LVIS_FOCUSED);
+                    if (name == top) topRow = i;
+                }
             }
+            if (topRow >= 0) ListView_EnsureVisible(col->list,topRow,FALSE);
             SendMessageW(col->list, WM_SETREDRAW, TRUE, 0);
             ShowWindow(col->list, SW_SHOWNOACTIVATE);
             InvalidateRect(col->list, nullptr, FALSE);
@@ -2342,13 +3657,15 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             ListView_SetItemState(col->list, 0, LVIS_FOCUSED, LVIS_FOCUSED);
         }
         Layout();
+        ArchivePreviewIcons::LogStats(L"recovery");
     }
     bool uiReady_{};
     unsigned diagnosticFallbackPaints_{};
     unsigned diagnosticFallbackIcons_{};
     unsigned diagnosticFallbackMisses_{};
     bool diagnosticPending_{true};
-    bool fallbackHeaderTracking_{};
+    int fallbackResizeColumn_{-1};
+    int fallbackResizeStartWidth_{};
     bool themeApplied_{};
     int appliedLanguage_{-1};
     HFONT font_{};
@@ -2451,7 +3768,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                     swprintf_s(warning,L"Cancel request failed (0x%08lX).",
                                static_cast < unsigned long > (result));
                     self->SetStatus(warning);
-                } else self->SetStatus(L"Cancelling...");
+                } else self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::Cancelling));
                 return 0;
             }
             case kOperationPollProgressMessage: {
@@ -2466,21 +3783,18 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                 self->extractionStage_ = stage;
                 self->extractionPercentKnown_ = known;
                 self->extractionPercent_ = percent;
-                if (self->cancelRequested_) self->SetStatus(L"Cancelling...");
-                else if (stage == ARCHIVE_PROGRESS_SCANNING) self->SetStatus(L"Scanning archive...");
-                else if (stage == ARCHIVE_PROGRESS_PICKING) self->SetStatus(L"Choose an extraction folder...");
+                if (self->cancelRequested_) self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::Cancelling));
+                else if (stage == ARCHIVE_PROGRESS_SCANNING) self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::PreparingFiles));
+                else if (stage == ARCHIVE_PROGRESS_PICKING) self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::ExtractTo));
                 else if (stage == ARCHIVE_PROGRESS_EXTRACTING) {
                     if (known) {
-                        wchar_t label[80]{};
-                        swprintf_s(label,L"Extracting... %lu%%",static_cast < unsigned long > (percent));
-                        self->SetStatus(label);
-                    } else self->SetStatus(L"Extracting...");
+                        self->SetStatus(std::wstring(ArchivePreviewText::Get(ArchivePreviewText::Id::Extracting)) +
+                            L" " + std::to_wstring(percent) + L"%");
+                    } else self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::Extracting));
                 } else if (stage == ARCHIVE_PROGRESS_EXTERNAL) {
-                    self->SetStatus(ArchivePreviewText::Language() == 1?
-                        L"Extracción en el programa externo. Cancela desde su ventana.":
-                        L"Extracting in external application. Cancel in its window.");
+                    self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::CancelInExternal));
                     self->Layout();
-                } else if (stage == ARCHIVE_PROGRESS_NONE) self->SetStatus(L"Waiting to extract...");
+                } else if (stage == ARCHIVE_PROGRESS_NONE) self->SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::StartingExtraction));
                 return 0;
             }
             case kOperationPollResultMessage: {
@@ -2532,6 +3846,14 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                     lp == reinterpret_cast < LPARAM > (self->brokerBoundList_)) {
                     self->brokerSelectionCount_ = static_cast < int > (std::min < WPARAM > (wp,40001));
                     self->Layout();
+                }
+                return 0;
+            case ARCHIVE_BROWSER_EXTRACT_ARCHIVE:
+                if (self->brokerBrowserReady_ && !self->selectionRetired_ &&
+                    self->brokerBoundList_ && lp == reinterpret_cast<LPARAM>(self->brokerBoundList_)) {
+                    using Action = ArchivePreviewOptions::ExtractAction;
+                    if (wp == static_cast<WPARAM>(Action::Here)) self->ExtractHere();
+                    if (wp == static_cast<WPARAM>(Action::To)) self->ExtractTo();
                 }
                 return 0;
             case ARCHIVE_BROWSER_CHROME_REFRESH:
@@ -2663,8 +3985,10 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                 }
                 if (wp == kThemePollTimer) {
                     self->UpdateButtonLabels();
-                    // Existing column settings also apply to the recovery view.
-                    if (!self->brokerBrowserReady_ && !self->cols_.empty()) self->Layout();
+                    if (!self->brokerBrowserReady_ && !self->cols_.empty()) {
+                        ArchivePreviewColumns::Load();
+                        self->ApplyFallbackColumnPreferences();
+                    }
                     if (self->statusUntil_ && GetTickCount64() >= self->statusUntil_) {
                         self->SetStatus(L"");
                     }
@@ -2856,20 +4180,15 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         if(self && (msg==WM_RBUTTONUP || msg==WM_CONTEXTMENU)){
             POINT point{GET_X_LPARAM(lp),GET_Y_LPARAM(lp)};
             if(msg==WM_RBUTTONUP)ClientToScreen(hwnd,&point);
-            if(ArchivePreviewColumns::VisibilityMenu(hwnd,point)){
-                self->Layout();
-                if(!self->cols_.empty()){
-                    auto & column=*self->cols_.back();
-                    if(self->fallbackJob_){
-                        self->fallbackJob_->cancelled.store(true,std::memory_order_release);
-                        self->fallbackJob_.reset();
-                    }
-                    column.populated=false;
-                    self->QueueFallback(column);
-                }
+            ArchivePreviewColumns::Change change;
+            if (ArchivePreviewColumns::VisibilityMenu(hwnd,point,change)) {
+                ArchiveSaveFallbackColumn(self->window_,change);
+                self->ApplyFallbackColumnPreferences();
             }
             return 0;
         }
+        if (self && (msg == WM_CANCELMODE || msg == WM_CAPTURECHANGED))
+            PostMessageW(self->window_,WM_SIZE,0,0);
         if(msg==WM_NCDESTROY)RemoveWindowSubclass(hwnd,ColumnHeaderProc,id);
         return DefSubclassProc(hwnd,msg,wp,lp);
     }
@@ -2877,22 +4196,58 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                                     UINT_PTR id, DWORD_PTR ref) {
         auto * self = reinterpret_cast < ArchiveHandler *  > (ref);
         if (self) {
-            if(msg==WM_HSCROLL)return 0;
-            if(msg==WM_SIZE || msg==LVM_INSERTITEMW || msg==LVM_DELETEITEM ||
-                msg==LVM_DELETEALLITEMS){
-                const LRESULT result=DefSubclassProc(hwnd,msg,wp,lp);
-                ArchivePreviewColumns::FitViewport(hwnd);
-                return result;
-            }
-            if(msg==WM_NOTIFY && lp){
-                auto * notice=reinterpret_cast<NMHDR*>(lp);
-                if(notice->hwndFrom==ListView_GetHeader(hwnd) &&
-                    (notice->code==HDN_BEGINTRACKW || notice->code==HDN_BEGINTRACKA ||
-                     notice->code==HDN_ENDTRACKW || notice->code==HDN_ENDTRACKA)){
-                    if(notice->code==HDN_BEGINTRACKW || notice->code==HDN_BEGINTRACKA)self->Notify(notice);
-                    const LRESULT result=DefSubclassProc(hwnd,msg,wp,lp);
-                    if(notice->code==HDN_ENDTRACKW || notice->code==HDN_ENDTRACKA)self->Notify(notice);
-                    return result;
+            if (ArchivePreviewOptions::hideHorizontalScrollbar.load() &&
+                (msg == WM_HSCROLL || msg == WM_MOUSEHWHEEL)) return 0;
+            if (msg == WM_NOTIFY && lp && !self->cols_.empty() && self->cols_.back()->list == hwnd) {
+                auto * notice = reinterpret_cast<NMHDR*>(lp);
+                if (notice->hwndFrom == ListView_GetHeader(hwnd)) {
+                    const auto code = notice->code;
+                    auto * track = reinterpret_cast<NMHEADERW*>(lp);
+                    const auto & columns = self->cols_.back()->visibleColumns;
+                    if (code == HDN_BEGINTRACKW || code == HDN_BEGINTRACKA) {
+                        if (track->iItem < 0 || static_cast<size_t>(track->iItem) >= columns.size()) return TRUE;
+                        const int width = ListView_GetColumnWidth(hwnd,track->iItem);
+                        if (!width || ArchivePreviewColumns::DragWidth(hwnd,self->dpi_,columns[track->iItem],width) < 0)
+                            return TRUE;
+                        const LRESULT result = DefSubclassProc(hwnd,msg,wp,lp);
+                        if (!result) {
+                            self->fallbackResizeStartWidth_ = width;
+                            self->fallbackResizeColumn_ = track->iItem;
+                        }
+                        return result;
+                    }
+                    if ((code == HDN_ITEMCHANGEDW || code == HDN_ITEMCHANGEDA) &&
+                        self->fallbackResizeColumn_ >= 0 &&
+                        ArchivePreviewOptions::hideHorizontalScrollbar.load()) {
+                        const LRESULT result = DefSubclassProc(hwnd,msg,wp,lp);
+                        ArchivePreviewColumns::HideScrollbar(hwnd);
+                        return result;
+                    }
+                    if ((code == HDN_ITEMCHANGINGW || code == HDN_ITEMCHANGINGA ||
+                         code == HDN_TRACKW || code == HDN_TRACKA ||
+                         code == HDN_ENDTRACKW || code == HDN_ENDTRACKA) &&
+                        self->fallbackResizeColumn_ >= 0 && track->iItem == self->fallbackResizeColumn_ &&
+                        static_cast<size_t>(track->iItem) < columns.size()) {
+                        const int kind = columns[track->iItem];
+                        const bool end = code == HDN_ENDTRACKW || code == HDN_ENDTRACKA;
+                        int width = -1;
+                        if (track->pitem && (track->pitem->mask & HDI_WIDTH)) {
+                            width = track->pitem->cxy == self->fallbackResizeStartWidth_ ? track->pitem->cxy :
+                                ArchivePreviewColumns::DragWidth(hwnd,self->dpi_,kind,track->pitem->cxy);
+                            if (width >= 0) track->pitem->cxy = width;
+                        }
+                        if (!end && width < 0) return TRUE;
+                        const LRESULT result = DefSubclassProc(hwnd,msg,wp,lp);
+                        if (end) {
+                            self->fallbackResizeColumn_ = -1;
+                            if (!result && width >= 0 && width != self->fallbackResizeStartWidth_) {
+                                const int dips = MulDiv(width,96,self->dpi_ ? self->dpi_ : 96);
+                                ArchiveSaveFallbackColumn(self->window_,{static_cast<DWORD>(kind),dips,0});
+                            }
+                            PostMessageW(self->window_,WM_SIZE,0,0);
+                        }
+                        return result;
+                    }
                 }
             }
             if (msg == WM_LBUTTONDOWN) {
@@ -3012,8 +4367,19 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                     if (!selected.empty()) self->DragItem(selected.front(), selected);
                     return 0;
                 }
-                if (ArchivePreviewOptions::MatchesExtractSelectedShortcut(wp)) {
-                    self->ExtractSelectedHere(); return 0;
+                using Action = ArchivePreviewOptions::ExtractAction;
+                const auto action = ArchivePreviewOptions::ExtractShortcutForKey(wp);
+                if (action != Action::None) {
+                    if (!ArchivePreviewOptions::IsRepeatedKey(lp) && !self->selectionRetired_) {
+                        switch (action) {
+                          case Action::Here: self->ExtractHere(); break;
+                          case Action::To: self->ExtractTo(); break;
+                          case Action::SelectedHere: self->ExtractSelectedHere(); break;
+                          case Action::SelectedTo: self->ExtractSelectedTo(); break;
+                          case Action::None: break;
+                        }
+                    }
+                    return 0;
                 }
                 if (wp == 'A' && (GetKeyState(VK_CONTROL) & 0x8000)) {
                     ListView_SetItemState(hwnd, - 1, LVIS_SELECTED, LVIS_SELECTED);
@@ -3151,20 +4517,28 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             InvalidateRect(window_,nullptr,FALSE);
         }
     }
-    void LayoutFallbackColumns(Column & column,int width) {
-        if(fallbackHeaderTracking_)return;
-        RECT viewport{};GetClientRect(column.list,&viewport);
-        width=std::max(1,std::min(width,static_cast<int>(viewport.right-viewport.left)));
+    void ApplyFallbackColumnPreferences() {
+        if (cols_.empty()) return;
+        auto & column = *cols_.back();
+        Layout();
+        if (fallbackResizeColumn_ >= 0 || !column.populated || fallbackJob_) return;
+        const unsigned wanted = ArchivePreviewOptions::MetadataMask(column.archiveBytes);
+        if (wanted == column.failedMetadataMask) return;
+        column.failedMetadataMask = ~0u;
+        if (wanted != column.metadataMask) QueueFallback(column,SIZE_MAX,true);
+    }
+    void LayoutFallbackColumns(Column & column) {
+        if (fallbackResizeColumn_ >= 0) {
+            if (GetCapture() == ListView_GetHeader(column.list)) return;
+            fallbackResizeColumn_ = -1;
+        }
         const std::vector < int > requested = [&]() {
             std::vector < int > result{0};
-            if (ArchivePreviewOptions::showDate.load()) result.push_back(1);
-            if (ArchivePreviewOptions::showType.load()) result.push_back(2);
-            if (ArchivePreviewOptions::showSize.load()) result.push_back(3);
+            if (ArchivePreviewOptions::ShowColumn(1)) result.push_back(1);
+            if (ArchivePreviewOptions::ShowColumn(2)) result.push_back(2);
+            if (ArchivePreviewOptions::ShowColumn(3)) result.push_back(3);
             return result;
         }();
-        const auto targetWidth = [&](int kind) {
-            return Scale(window_,kind == 1?150:(kind == 2?120:94));
-        };
         const int language = ArchivePreviewText::Language();
         if (column.visibleColumns != requested || column.appliedLanguage != language) {
             for (int i = 0;i < 4;++i)
@@ -3177,7 +4551,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
                 LVCOLUMNW value{};
                 value.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT;
                 value.pszText = const_cast < LPWSTR > (titles[requested[i]]);
-                value.cx = i?targetWidth(requested[i]):Scale(window_,220);
+                value.cx = 0;
                 value.fmt = requested[i] == 3?LVCFMT_RIGHT:LVCFMT_LEFT;
                 ListView_InsertColumn(column.list,static_cast < int > (i),&value);
             }
@@ -3185,35 +4559,13 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             column.appliedLanguage = language;
             InvalidateRect(column.list,nullptr,FALSE);
         }
-        const auto manual=ArchivePreviewColumns::Snapshot();
-        if(manual.custom){
-            std::vector<int> widths;
-            for(const int kind:requested)widths.push_back(manual.dips[kind]>0?Scale(window_,manual.dips[kind]):Scale(window_,kind==0?220:(kind==1?150:(kind==2?120:94))));
-            ArchivePreviewColumns::Fit(widths,width,Scale(window_,40));
-            for(size_t i=0;i<widths.size();++i)ListView_SetColumnWidth(column.list,static_cast<int>(i),widths[i]);
-        }else{
-        int target = 0;
-        for (size_t i = 1;i < requested.size();++i) target += targetWidth(requested[i]);
-        const int available = std::max(0,width - Scale(window_,150));
-        int used = 0;
-        for (size_t i = 1;i < requested.size();++i) {
-            const int wanted = targetWidth(requested[i]);
-            const int next = target > available && target > 0?
-                std::max(1,MulDiv(wanted,available,target)):wanted;
-            if (ListView_GetColumnWidth(column.list,static_cast < int > (i)) != next)
-                ListView_SetColumnWidth(column.list,static_cast < int > (i),next);
-            used += next;
-        }
-        const int nameWidth = std::max(1,width - used);
-        if (ListView_GetColumnWidth(column.list,0) != nameWidth)
-            ListView_SetColumnWidth(column.list,0,nameWidth);
-        }
-        ArchivePreviewColumns::FitViewport(column.list);
+        ArchivePreviewColumns::Layout(column.list,dpi_,requested);
         HWND header = ListView_GetHeader(column.list);
         for (size_t i=0;header && i<requested.size();++i) {
             HDITEMW item{};item.mask = HDI_FORMAT;
             if (!Header_GetItem(header,static_cast<int>(i),&item)) continue;
-            item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+            item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN | HDF_RTLREADING);
+            if (ArchivePreviewText::TextDirection()) item.fmt |= HDF_RTLREADING;
             if (requested[i] == column.sortColumn)
                 item.fmt |= column.sortAscending?HDF_SORTUP:HDF_SORTDOWN;
             Header_SetItem(header,static_cast<int>(i),&item);
@@ -3305,12 +4657,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         if (cols_.empty() || !cols_.back()->list) return;
         HWND list = cols_.back()->list;
         placeChild(list,0,toolbar,width,std::max(1,height - toolbar - noticeHeight));
-        // Use the actual client width; subtracting a scrollbar can
-        // when no scrollbar existed, leaving a visible strip at the right edge.
-        RECT inner{};
-        GetClientRect(list, & inner);
-        LayoutFallbackColumns(*cols_.back(),
-            std::max(1,static_cast < int > (inner.right - inner.left)));
+        LayoutFallbackColumns(*cols_.back());
         // The parent has no newly exposed pixels if the layout is identical.
         // Repaints are requested by theme/status/child windows themselves.
     }
@@ -3343,9 +4690,10 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             RECT label{strip.left + Scale(window_,11),strip.top + Scale(window_,1),
                 std::max(strip.left + Scale(window_,20),strip.right - Scale(window_,reserveCancel?82:12)),
                 progress?strip.bottom - Scale(window_,8):strip.bottom};
-            const std::wstring message = status_.empty() ? L"Extracting..." : status_;
+            const std::wstring message = status_.empty() ?
+                ArchivePreviewText::Get(ArchivePreviewText::Id::Extracting) : status_;
             Label(dc,label,message,font_,palette_.fg,
-                DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+                DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | ArchivePreviewText::TextDirection());
             if (progress) {
                 RECT track{strip.left + Scale(window_,9),strip.bottom - Scale(window_,7),
                     strip.right - Scale(window_,9),strip.bottom - Scale(window_,4)};
@@ -3407,9 +4755,13 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             di->hwndItem != cols_.back()->list) return FALSE;
         Column & col = * cols_.back();
         if (di->itemID >= col.entries.size()) return TRUE;
-        ++diagnosticFallbackPaints_;
+        const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
+        if (diagnostics) ++diagnosticFallbackPaints_;
         const Entry & e = col.entries[di->itemID];
         RECT r = di->rcItem;
+        r.left = 0;
+        r.right = ArchivePreviewColumns::ViewportWidth(col.list);
+        const int origin = -ArchivePreviewColumns::HorizontalOffset(col.list);
         // Selection comes from the current ListView; Column no longer stores
         // any selection state after the UI was reduced to one visible list.
         const bool chosen = (di->itemState & ODS_SELECTED) != 0 ||
@@ -3419,7 +4771,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             RECT stripe{r.left, r.top, r.left + Scale(window_, 3), r.bottom};
             Fill(di->hDC, stripe, palette_.accent);
         }
-        const int ix = r.left + Scale(window_, 7);
+        const int ix = origin + Scale(window_,7);
         const int iy = r.top + (r.bottom - r.top - Scale(window_, 16)) / 2;
         if (e.iconImage || (icons_ && e.iconIndex >= 0)) {
             // Use the icon alpha/mask, not ImageList_Draw's default background.
@@ -3429,22 +4781,22 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             if (icon) {
                 const BOOL drawn = DrawIconEx(di->hDC, ix, iy, icon, Scale(window_, 16),
                            Scale(window_, 16), 0, nullptr, DI_NORMAL);
-                if (drawn) ++diagnosticFallbackIcons_;
-                else ++diagnosticFallbackMisses_;
+                if (diagnostics && drawn) ++diagnosticFallbackIcons_;
+                else if (diagnostics) ++diagnosticFallbackMisses_;
                 if (!e.iconImage) DestroyIcon(icon);
-            } else ++diagnosticFallbackMisses_;
-        } else ++diagnosticFallbackMisses_;
+            } else if (diagnostics) ++diagnosticFallbackMisses_;
+        } else if (diagnostics) ++diagnosticFallbackMisses_;
         const int nameWidth = ListView_GetColumnWidth(col.list,0);
         RECT name{ix + Scale(window_,23),r.top,
-            r.left + nameWidth - Scale(window_,8),r.bottom};
+            origin + nameWidth - Scale(window_,8),r.bottom};
         if (name.right > name.left)
             Label(di->hDC,name,e.name,font_,chosen?palette_.selectedText:palette_.fg,
                 DT_SINGLELINE | DT_END_ELLIPSIS | DT_VCENTER | DT_LEFT);
-        int columnLeft = r.left + nameWidth;
+        int columnLeft = origin + nameWidth;
         for (size_t i = 1;i < col.visibleColumns.size();++i) {
             const int kind = col.visibleColumns[i];
             const int width = ListView_GetColumnWidth(col.list,static_cast < int > (i));
-            const std::wstring text = kind == 1?(e.modifiedLabel.empty()?L"—":e.modifiedLabel):
+            const std::wstring text = kind == 1?e.modifiedLabel:
                 (kind == 2?e.kind:(e.hasSize?HumanSize(e.bytes):L""));
             RECT cell{columnLeft + Scale(window_,6),r.top,
                 columnLeft + width - Scale(window_,10),r.bottom};
@@ -3494,23 +4846,6 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
     LRESULT Notify(NMHDR * n) {
         if(!n || cols_.empty())return 0;
         auto & activeColumn=*cols_.back();
-        if(n->hwndFrom==ListView_GetHeader(activeColumn.list)){
-            if(n->code==HDN_BEGINTRACKW || n->code==HDN_BEGINTRACKA){fallbackHeaderTracking_=true;return FALSE;}
-            if(n->code==HDN_ENDTRACKW || n->code==HDN_ENDTRACKA){
-                auto value=ArchivePreviewColumns::Snapshot();value.custom=true;
-                const auto * tracking=reinterpret_cast<const NMHEADERW*>(n);
-                const int dpi=static_cast<int>(GetDpiForWindow(activeColumn.list));
-                for(size_t i=0;i<activeColumn.visibleColumns.size();++i){
-                    int pixels=ListView_GetColumnWidth(activeColumn.list,static_cast<int>(i));
-                    if(tracking->iItem==static_cast<int>(i) && tracking->pitem && (tracking->pitem->mask & HDI_WIDTH))pixels=tracking->pitem->cxy;
-                    value.dips[activeColumn.visibleColumns[i]]=std::max(1,MulDiv(pixels,96,dpi?dpi:96));
-                }
-                ArchivePreviewColumns::Store(value);fallbackHeaderTracking_=false;
-                ArchivePreviewColumns::FitViewport(activeColumn.list);
-                PostMessageW(window_,WM_SIZE,0,0);return FALSE;
-            }
-            return 0;
-        }
         if(n->hwndFrom!=activeColumn.list)return 0;
         if (n->code == LVN_COLUMNCLICK && !brokerBrowserReady_ && cols_.back()->populated) {
             const auto * click = reinterpret_cast<const NMLISTVIEW*>(n);
@@ -3599,14 +4934,12 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         if (extractButton_) EnableWindow(extractButton_,TRUE);
         if (extractToButton_) EnableWindow(extractToButton_,TRUE);
         Layout();
-        if (SUCCEEDED(outcome)) SetStatus(L"Extraction completed.");
+        if (SUCCEEDED(outcome)) SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::ExtractionComplete));
         else if (outcome == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) &&
             ArchivePreviewOptions::ExtractionSnapshot().backend != 0)
-            SetStatus(ArchivePreviewText::Language() == 1?
-                L"No se encuentra el programa de extracción. Revisa los ajustes del mod.":
-                L"Extraction program not found. Check the mod settings.");
+            SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::ExtractorMissing));
         else if (outcome == HRESULT_FROM_WIN32(ERROR_CANCELLED))
-            SetStatus(L"Extraction cancelled.");
+            SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::ExtractionCancelled));
         else if (outcome == HRESULT_FROM_WIN32(ERROR_PARTIAL_COPY))
             SetStatus(L"Extraction incomplete. Some files remain in the destination.");
         else {
@@ -3648,9 +4981,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
     void CancelExtraction() {
         if (!extractionPending_ || cancelRequested_ || !window_) return;
         if (extractionStage_ == ARCHIVE_PROGRESS_EXTERNAL) {
-            SetStatus(ArchivePreviewText::Language() == 1?
-                L"Cancela la extracción desde la ventana del programa externo.":
-                L"Cancel extraction in the external application's window.");
+            SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::CancelInExternal));
             return;
         }
         auto * job = new(std::nothrow) OperationCancelJob;
@@ -3663,7 +4994,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         if (!thread) {delete job;return;}
         cancelRequested_ = true;
         if (cancelButton_) EnableWindow(cancelButton_,FALSE);
-        SetStatus(L"Cancelling...");
+        SetStatus(ArchivePreviewText::Get(ArchivePreviewText::Id::Cancelling));
     }
     void PollExtractionStatus() {
         if (!extractionPending_ || !window_ || statusPollRunning_) return;
@@ -3730,7 +5061,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         AppendMenuW(menu,MF_STRING,kSelectedMenuTo,ArchivePreviewText::Get(ArchivePreviewText::Id::SelectedTo));
 
         const UINT choice = TrackPopupMenu(menu,TPM_RETURNCMD | TPM_NONOTIFY |
-            TPM_RIGHTBUTTON,screenPoint.x,screenPoint.y,0,window_,nullptr);
+            TPM_RIGHTBUTTON | ArchivePreviewText::MenuDirection(),screenPoint.x,screenPoint.y,0,window_,nullptr);
         DestroyMenu(menu);
         if (choice == kSelectedMenuHere) ExtractSelectedHere();
         else if (choice == kSelectedMenuTo) ExtractSelectedTo();
@@ -3767,18 +5098,19 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
     // Attach/detach runs on a tracked IPC worker so the preview UI does not
     // block on the broker. The broker still owns the native transfer ListView.
     void Diagnostic(PCWSTR reason) {
+        if (!ArchivePreviewDiagnostics::Enabled()) return;
         HWND list = cols_.empty()?nullptr:cols_.back()->list;
         HWND broker = window_?FindWindowExW(window_,nullptr,
             L"ArchivePreview.BrokerListHost.0607",nullptr):nullptr;
         Wh_Log(L"[AP diag/host] %s pid=%lu self=%p window=%p anchor=%p bound=%p "
                L"brokerChild=%p ready=%d failed=%d terminal=%d retired=%d back=%d "
-               L"history=%zu rows=%zu listVisible=%d paints=%u icons=%u misses=%u archive=%s",
+               L"history=%zu rows=%zu listVisible=%d paints=%u icons=%u misses=%u dpi=%u",
             reason,GetCurrentProcessId(),this,window_,list,brokerBoundList_,broker,
             brokerBrowserReady_?1:0,brokerLoadFailed_?1:0,terminalLoadFailure_?1:0,
             selectionRetired_?1:0,brokerCanGoBack_?1:0,cols_.size(),
             cols_.empty()?size_t(0):cols_.back()->entries.size(),
             list && IsWindowVisible(list)?1:0,diagnosticFallbackPaints_,
-            diagnosticFallbackIcons_,diagnosticFallbackMisses_,archive_.c_str());
+            diagnosticFallbackIcons_,diagnosticFallbackMisses_,dpi_);
     }
     void SyncGrip(bool clear = false) {
         if ((terminalLoadFailure_ || brokerLoadFailed_) && !clear) return;
@@ -3865,7 +5197,9 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         ULONGLONG archiveBytes=ArchivePreviewOptions::kLargeMetadataThreshold;
         if(GetFileAttributesExW(job.archive.c_str(),GetFileExInfoStandard,&archiveInfo))
             archiveBytes=(static_cast<ULONGLONG>(archiveInfo.nFileSizeHigh)<<32) | archiveInfo.nFileSizeLow;
-        const unsigned metadataMask=ArchivePreviewOptions::MetadataMask(archiveBytes);
+        job.archiveBytes = archiveBytes;
+        job.metadataMask = job.metadataPolicy.ForArchive(archiveBytes);
+        const unsigned metadataMask = job.metadataMask;
         IShellItem * folder = nullptr;
         HRESULT hr = SHCreateItemFromIDList(job.folderId, IID_PPV_ARGS( & folder));
         if (FAILED(hr)) return hr;
@@ -3935,8 +5269,10 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
             e.folder = SUCCEEDED(item->GetAttributes(SFGAO_FOLDER, & attrs)) &&
                        ((attrs & SFGAO_FOLDER) != 0);
             IShellItem2 * props = nullptr;
-            if (SUCCEEDED(item->QueryInterface(IID_PPV_ARGS( & props)))) {
-                e.hasSize = (metadataMask & 2u) && !e.folder && SUCCEEDED(props->GetUInt64(PKEY_Size, & e.bytes));
+            const bool readSize = (metadataMask & 2u) && !e.folder;
+            if (((metadataMask & 1u) || readSize) &&
+                SUCCEEDED(item->QueryInterface(IID_PPV_ARGS( & props))) && props) {
+                e.hasSize = readSize && SUCCEEDED(props->GetUInt64(PKEY_Size, & e.bytes));
                 if (e.hasSize && !e.bytes && ArchivePreviewIsSingleStreamArchive(job.archive))
                     e.hasSize = false; // Shell's zero may be an unknown size.
                 if (metadataMask & 1u) {
@@ -4029,6 +5365,7 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
 
         if (!folderId || !Within(archiveId_, folderId) || cols_.size() >= kMaxDepth)
             return E_ACCESSDENIED;
+        ArchivePreviewColumns::Load();
         auto col = std::make_unique < Column > ();
         col->heading = std::move(heading);
         col->folderId = ILCloneFull(folderId);
@@ -4171,8 +5508,23 @@ class ArchiveHandler final : public IPreviewHandler, public IInitializeWithFile,
         error_.clear();
     }
 public:
-    ArchiveHandler() { ++g_objects; }
-    ~ArchiveHandler() { Stop(); if (site_) site_->Release(); --g_objects; }
+    ArchiveHandler() {
+        ++g_objects;
+        ++g_liveArchiveHandlers;
+        Wh_Log(L"[AP lifecycle] object=archive-handler event=created handler=%p tid=%lu",
+            static_cast<IPreviewHandler*>(this),GetCurrentThreadId());
+    }
+    ~ArchiveHandler() {
+        const ULONGLONG started = GetTickCount64();
+        Wh_Log(L"[AP lifecycle] object=archive-handler event=final-release-begin handler=%p tid=%lu hwnd=%p site=%d",
+            static_cast<IPreviewHandler*>(this),GetCurrentThreadId(),window_,site_ ? 1 : 0);
+        Stop();
+        if (site_) site_->Release();
+        Wh_Log(L"[AP lifecycle] object=archive-handler event=final-release-end handler=%p elapsed_ms=%llu",
+            static_cast<IPreviewHandler*>(this),GetTickCount64() - started);
+        --g_liveArchiveHandlers;
+        --g_objects;
+    }
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void *  * out) override {
         if (!out) return E_POINTER;
         * out = nullptr;
@@ -4336,14 +5688,22 @@ public:
         previewStartedAt_ = GetTickCount64();
         HRESULT hr = Start();
         SyncGrip();
-        wchar_t startup[144]{};
-        swprintf_s(startup, L"ArchivePreview startup: base ready, elapsed=%llu ms\n",
+        Wh_Log(L"[AP lifecycle] object=archive-handler event=preview-started handler=%p hwnd=%p dpi=%u hr=0x%08lX elapsed_ms=%llu",
+            static_cast<IPreviewHandler*>(this),window_,dpi_,static_cast<unsigned long>(hr),
             GetTickCount64() - previewStartedAt_);
-        Wh_Log(L"%s",startup);
         InvalidateRect(window_, nullptr, FALSE);
         return hr;
     }
-    HRESULT STDMETHODCALLTYPE Unload() override { Stop(); archive_.clear(); return S_OK; }
+    HRESULT STDMETHODCALLTYPE Unload() override {
+        const ULONGLONG started = GetTickCount64();
+        Wh_Log(L"[AP lifecycle] object=archive-handler event=unload-begin handler=%p tid=%lu hwnd=%p broker_ready=%d",
+            static_cast<IPreviewHandler*>(this),GetCurrentThreadId(),window_,brokerBrowserReady_ ? 1 : 0);
+        Stop();
+        archive_.clear();
+        Wh_Log(L"[AP lifecycle] object=archive-handler event=unload-end handler=%p elapsed_ms=%llu",
+            static_cast<IPreviewHandler*>(this),GetTickCount64() - started);
+        return S_OK;
+    }
     HRESULT STDMETHODCALLTYPE SetFocus() override {
         if (!cols_.empty() && cols_.back()->list) {
             ::SetFocus(cols_.back()->list); return S_OK;
@@ -4398,7 +5758,13 @@ namespace fs = std::filesystem;
 // Shutdown is cooperative. Never terminate a thread while it can be inside
 // a Windows Shell/COM provider; join worker handles before DLL unload.
 static std::atomic < bool > g_cancelForShutdown{false};
+// The service owner keeps this event alive until the service and UI have joined.
+static HANDLE g_brokerStopEvent = nullptr;
 static thread_local const std::atomic < bool >  * t_operationCancelFlag = nullptr;
+static void SignalBrokerShutdown() {
+    g_cancelForShutdown.store(true,std::memory_order_release);
+    if (g_brokerStopEvent) SetEvent(g_brokerStopEvent);
+}
 static bool CancelledForCurrentOperation(const std::atomic < bool >  * overrideFlag = nullptr) {
     return g_cancelForShutdown.load(std::memory_order_acquire) ||
         (t_operationCancelFlag && t_operationCancelFlag->load(std::memory_order_acquire)) ||
@@ -4419,6 +5785,7 @@ struct Request {
     GUID requestId{};
     std::wstring archive;
     std::vector < std::wstring > items;
+    ArchiveBrokerColumnChange columnChange{};
 };
 
 static bool IsArchiveExtension(const std::wstring & filename) {
@@ -4517,7 +5884,8 @@ static HRESULT Receive(HANDLE pipe, Request & request) {
          header.command != ARCHIVE_BROKER_PING &&
          header.command != ARCHIVE_BROKER_QUERY_STATUS &&
          header.command != ARCHIVE_BROKER_CANCEL_OPERATION &&
-         header.command != ARCHIVE_BROKER_RESOLVE_SELECTED_PATH) ||
+         header.command != ARCHIVE_BROKER_RESOLVE_SELECTED_PATH &&
+         header.command != ARCHIVE_BROKER_SAVE_COLUMN) ||
         header.archiveChars > ARCHIVE_BROKER_MAX_CHARS ||
         header.itemCount > ARCHIVE_BROKER_MAX_PATHS) return E_INVALIDARG;
     // Count and total byte budget are checked before the broker allocates
@@ -4525,9 +5893,17 @@ static HRESULT Receive(HANDLE pipe, Request & request) {
     ULONGLONG receivedBytes = static_cast < ULONGLONG > (header.archiveChars) * sizeof(wchar_t);
     if (receivedBytes > ARCHIVE_BROKER_MAX_WIRE_BYTES) return E_INVALIDARG;
     const ULONGLONG deadline = GetTickCount64() + 60000; // absolute wire budget, 5-second idle timeout
-    request.items.reserve(header.itemCount);
     request.command = header.command;
     request.requestId = header.requestId;
+    if (header.command == ARCHIVE_BROKER_SAVE_COLUMN) {
+        if (header.archiveChars || header.itemCount) return E_INVALIDARG;
+        hr = ReadPipeWithDeadline(pipe,&request.columnChange,sizeof(request.columnChange),headerDeadline);
+        if (FAILED(hr)) return hr;
+        return request.columnChange.previewWindow && !request.columnChange.reserved &&
+            ArchivePreviewColumns::Valid(request.columnChange.change)
+            ? S_OK : E_INVALIDARG;
+    }
+    request.items.reserve(header.itemCount);
     if (header.command == ARCHIVE_BROKER_QUERY_STATUS) {
         const GUID zero{};
         return !InlineIsEqualGUID(header.requestId,zero) &&
@@ -5004,7 +6380,7 @@ static HRESULT NativeShellClipboard(const Request & req,HWND owner) {
 // STA, so the watchdog sees genuine Shell activity, not a wall-clock timer.
 static thread_local std::atomic < ULONGLONG >  * t_workerHeartbeat = nullptr;
 static thread_local std::atomic < DWORD >  * t_workerProgressStage = nullptr;
-static void NativeProgressRecord(const GUID & id,DWORD stage,
+static bool NativeProgressRecord(const GUID & id,DWORD stage,
     bool known = false,DWORD percent = 0,bool begin = false,
     bool updateEstimate = false);
 
@@ -5015,7 +6391,8 @@ class NativeExtractionProgressSink final : public IFileOperationProgressSink {
     GUID requestId_{};
     const std::atomic < bool >  * cancellation_{};
     HRESULT firstFailure_{S_OK};
-    ULONGLONG started_{GetTickCount64()};
+    const bool diagnostics_{ArchivePreviewDiagnostics::Enabled()};
+    ULONGLONG started_{diagnostics_?GetTickCount64():0};
     ULONGLONG lastCallbackLog_{};
     ULONGLONG preCopyCount_{};
     ULONGLONG postCopyCount_{};
@@ -5041,7 +6418,7 @@ public:
     NativeExtractionProgressSink(const GUID & id,
         const std::atomic < bool >  * cancellation):
         requestId_(id),cancellation_(cancellation){
-        StringFromGUID2(id,requestText_,_countof(requestText_));
+        if (diagnostics_) StringFromGUID2(id,requestText_,_countof(requestText_));
     }
     HRESULT Failure() const {return firstFailure_;}
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid,void *  * out) override {
@@ -5062,15 +6439,17 @@ public:
         return remaining;
     }
     HRESULT STDMETHODCALLTYPE StartOperations() override {
-        LogCallback(L"StartOperations",1);
+        if (diagnostics_) LogCallback(L"StartOperations",1);
         NativeProgressRecord(requestId_,ARCHIVE_PROGRESS_EXTRACTING);
         return Check();
     }
     HRESULT STDMETHODCALLTYPE FinishOperations(HRESULT result) override {
-        LogCallback(L"FinishOperations",1,result);
-        Wh_Log(L"[AP extract] id=%s copy callbacks pre=%llu post=%llu",
-            requestText_,static_cast<unsigned long long>(preCopyCount_),
-            static_cast<unsigned long long>(postCopyCount_));
+        if (diagnostics_) {
+            LogCallback(L"FinishOperations",1,result);
+            Wh_Log(L"[AP extract] id=%s copy callbacks pre=%llu post=%llu",
+                requestText_,static_cast<unsigned long long>(preCopyCount_),
+                static_cast<unsigned long long>(postCopyCount_));
+        }
         if (FAILED(result) && SUCCEEDED(firstFailure_)) firstFailure_ = result;
         return S_OK; // do not overwrite the original Shell operation result
     }
@@ -5079,12 +6458,12 @@ public:
     HRESULT STDMETHODCALLTYPE PreMoveItem(DWORD,IShellItem * ,IShellItem * ,LPCWSTR) override {return Check();}
     HRESULT STDMETHODCALLTYPE PostMoveItem(DWORD,IShellItem * ,IShellItem * ,LPCWSTR,HRESULT hr,IShellItem * ) override {return PostResult(hr);}
     HRESULT STDMETHODCALLTYPE PreCopyItem(DWORD,IShellItem * ,IShellItem * ,LPCWSTR) override {
-        LogCallback(L"PreCopyItem",++preCopyCount_);
+        if (diagnostics_) LogCallback(L"PreCopyItem",++preCopyCount_);
         NativeProgressRecord(requestId_,ARCHIVE_PROGRESS_EXTRACTING);
         return Check();
     }
     HRESULT STDMETHODCALLTYPE PostCopyItem(DWORD,IShellItem * ,IShellItem * ,LPCWSTR,HRESULT hr,IShellItem * ) override {
-        LogCallback(L"PostCopyItem",++postCopyCount_,hr);
+        if (diagnostics_) LogCallback(L"PostCopyItem",++postCopyCount_,hr);
         return PostResult(hr);
     }
     HRESULT STDMETHODCALLTYPE PreDeleteItem(DWORD,IShellItem * ) override {return Check();}
@@ -5096,8 +6475,8 @@ public:
         // total is indeterminate. Do not invent a percentage or byte count.
         const DWORD percent = total ? static_cast < DWORD > (
             std::min < ULONGLONG > (100,(static_cast < ULONGLONG > (soFar) * 100) / total)) : 0;
-        const ULONGLONG now = GetTickCount64();
-        if (!lastCallbackLog_ || now - lastCallbackLog_ >= 2000) {
+        const ULONGLONG now = diagnostics_?GetTickCount64():0;
+        if (diagnostics_ && (!lastCallbackLog_ || now - lastCallbackLog_ >= 2000)) {
             lastCallbackLog_ = now;
             Wh_Log(L"[AP extract] id=%s callback=UpdateProgress total=%u done=%u percent=%lu elapsed=%llu ms",
                 requestText_,total,soFar,percent,static_cast<unsigned long long>(now-started_));
@@ -5113,10 +6492,12 @@ public:
 
 static HRESULT NativeShellExtract(const Request & req) {
     if (!SafeArchivePath(req.archive,true)) return E_INVALIDARG;
+    const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
     wchar_t traceId[48]{};
-    StringFromGUID2(req.requestId,traceId,_countof(traceId));
-    const ULONGLONG extractionStarted = GetTickCount64();
+    if (diagnostics) StringFromGUID2(req.requestId,traceId,_countof(traceId));
+    const ULONGLONG extractionStarted = diagnostics?GetTickCount64():0;
     auto step = [&](PCWSTR name,auto action)->HRESULT {
+        if (!diagnostics) return action();
         const ULONGLONG began = GetTickCount64();
         Wh_Log(L"[AP extract] id=%s step=%s begin elapsed=%llu ms",
             traceId,name,static_cast<unsigned long long>(began-extractionStarted));
@@ -5283,8 +6664,12 @@ static std::wstring ExternalFindExecutable(int kind) {
             for (HKEY root:{HKEY_CURRENT_USER,HKEY_LOCAL_MACHINE}) {
                 wchar_t value[32768]{};DWORD bytes = sizeof(value);
                 if (RegGetValueW(root,L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\WinRAR.exe",
-                    nullptr,RRF_RT_REG_SZ,nullptr,value,&bytes) == ERROR_SUCCESS && bytes < sizeof(value))
-                    candidates.push_back(ExternalExpandedPath(value));
+                    nullptr,RRF_RT_REG_SZ,nullptr,value,&bytes) == ERROR_SUCCESS && bytes < sizeof(value)) {
+                    auto path = ExternalExpandedPath(value);
+                    // App Paths can register the executable without its .exe suffix.
+                    if (_wcsicmp(PathFindFileNameW(path.c_str()),L"WinRAR") == 0) path += L".exe";
+                    candidates.push_back(std::move(path));
+                }
             }
         }
     } else if (kind == 3) {
@@ -5294,20 +6679,38 @@ static std::wstring ExternalFindExecutable(int kind) {
         if (ExternalExistingExecutable(candidate,kind)) return candidate;
     return {};
 }
+enum class ExternalDragLeaseStatus : DWORD { Idle, Launching, Running };
+static constexpr DWORD kExternalDragLeaseSignature = 0x31445041; // APD1
+struct ExternalDragLeaseRecord {
+    DWORD signature{};
+    ExternalDragLeaseStatus status{};
+    DWORD pid{};
+    FILETIME created{};
+};
+static bool WriteExternalDragLease(HANDLE file,ExternalDragLeaseStatus status,
+                                   DWORD pid = 0,FILETIME created = {}) {
+    const ExternalDragLeaseRecord record{kExternalDragLeaseSignature,status,pid,created};
+    LARGE_INTEGER start{};
+    DWORD written = 0;
+    return SetFilePointerEx(file,start,nullptr,FILE_BEGIN) &&
+        WriteFile(file,&record,sizeof(record),&written,nullptr) &&
+        written == sizeof(record) && FlushFileBuffers(file);
+}
 static HRESULT ExternalShellExtract(const Request & req,
     const ArchivePreviewOptions::ExtractionOptions & options,
-    const std::wstring & forcedDestination = {},bool * detached = nullptr) {
+    const std::wstring & forcedDestination = {},HANDLE dragLease = nullptr) {
     if (!SafeArchivePath(req.archive,true) || req.items.size() > ARCHIVE_BROKER_MAX_PATHS)
         return E_INVALIDARG;
     for (const auto & item:req.items) if (!SafeRelativePath(item)) return E_INVALIDARG;
     int kind = options.backend;
+    const PCWSTR resolution = !options.executable.empty() ? L"manual" : kind == 1 ? L"auto" : L"installed";
     std::wstring executable;
     if (!options.executable.empty()) {
         executable = ExternalExpandedPath(options.executable);
         const int detected = ExternalExecutableKind(executable);
         if (!detected || (kind != 1 && kind != detected) ||
             !ExternalExistingExecutable(executable,detected)) {
-            Wh_Log(L"[AP external] invalid extractor path or program mismatch: %s",executable.c_str());
+            Wh_Log(L"[AP external] manual path rejected configured_program=%d detected_program=%d",kind,detected);
             return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
         }
         kind = detected;
@@ -5318,9 +6721,10 @@ static HRESULT ExternalShellExtract(const Request & req,
         }
     } else executable = ExternalFindExecutable(kind);
     if (executable.empty()) {
-        Wh_Log(L"[AP external] selected program not found; configure ExternalExtractorPath");
+        Wh_Log(L"[AP external] program not found resolution=%s configured_program=%d",resolution,options.backend);
         return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
     }
+    const PCWSTR program = kind == 2 ? L"7-Zip" : kind == 3 ? L"NanaZip" : L"WinRAR";
     const bool choose = forcedDestination.empty() && (req.command == ARCHIVE_BROKER_EXTRACT_TO ||
         req.command == ARCHIVE_BROKER_EXTRACT_SELECTED_TO);
     std::wstring destination = forcedDestination.empty()?ParentFolder(req.archive):forcedDestination;
@@ -5372,21 +6776,39 @@ static HRESULT ExternalShellExtract(const Request & req,
     startup.dwFlags = STARTF_USESHOWWINDOW;startup.wShowWindow = SW_SHOWNORMAL;
     PROCESS_INFORMATION child{};
     const std::wstring working = ParentFolder(executable);
+    // Commit the handoff under the same lock as broker cancellation. An
+    // accepted cancel must prevent launch. After the handoff the extractor owns it.
+    if (!NativeProgressRecord(req.requestId,ARCHIVE_PROGRESS_EXTERNAL,false,0,true,true))
+        return HRESULT_FROM_WIN32(ERROR_CANCELLED);
+    // Persist an uncertain state before launch. Recovery must retain a stage
+    // if Explorer exits before the extractor's identity can be recorded.
+    if (dragLease && !WriteExternalDragLease(dragLease,ExternalDragLeaseStatus::Launching))
+        return E_FAIL;
+    if (CancelledForCurrentOperation()) {
+        if (dragLease) WriteExternalDragLease(dragLease,ExternalDragLeaseStatus::Idle);
+        return HRESULT_FROM_WIN32(ERROR_CANCELLED);
+    }
     // Pin the executable in lpApplicationName and do not inherit broker handles.
     if (!CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,0,
         nullptr,working.empty()?nullptr:working.c_str(),&startup,&child)) {
         const DWORD error = GetLastError();
-        Wh_Log(L"[AP external] launch failed exe=%s Win32=%lu",executable.c_str(),error);
+        if (dragLease) WriteExternalDragLease(dragLease,ExternalDragLeaseStatus::Idle);
+        Wh_Log(L"[AP external] launch failed program=%s resolution=%s Win32=%lu",program,resolution,error);
         return HRESULT_FROM_WIN32(error);
     }
     CloseHandle(child.hThread);
-    Wh_Log(L"[AP external] started exe=%s pid=%lu selected=%zu",executable.c_str(),child.dwProcessId,req.items.size());
-    NativeProgressRecord(req.requestId,ARCHIVE_PROGRESS_EXTERNAL,false,0,true,true);
+    if (dragLease) {
+        FILETIME created{},exited{},kernel{},user{};
+        if (GetProcessTimes(child.hProcess,&created,&exited,&kernel,&user))
+            WriteExternalDragLease(dragLease,ExternalDragLeaseStatus::Running,child.dwProcessId,created);
+    }
+    Wh_Log(L"[AP external] started program=%s resolution=%s pid=%lu selected=%zu",program,resolution,child.dwProcessId,req.items.size());
     HRESULT result = E_FAIL;
     for (;;) {
         const DWORD wake = MsgWaitForMultipleObjects(1,&child.hProcess,FALSE,250,QS_ALLINPUT);
         if (wake == WAIT_OBJECT_0) {
             DWORD code = 0;
+            if (dragLease) WriteExternalDragLease(dragLease,ExternalDragLeaseStatus::Idle);
             if (!GetExitCodeProcess(child.hProcess,&code)) result = HRESULT_FROM_WIN32(GetLastError());
             else {
                 Wh_Log(L"[AP external] finished pid=%lu exit=%lu",child.dwProcessId,code);
@@ -5398,7 +6820,8 @@ static HRESULT ExternalShellExtract(const Request & req,
         if (wake == WAIT_FAILED) {result = HRESULT_FROM_WIN32(GetLastError());break;}
         if (wake == WAIT_OBJECT_0 + 1) {
             MSG message{};
-            while (PeekMessageW(&message,nullptr,0,0,PM_REMOVE)) {
+            while (!CancelledForCurrentOperation() &&
+                   PeekMessageW(&message,nullptr,0,0,PM_REMOVE)) {
                 TranslateMessage(&message);DispatchMessageW(&message);
             }
         }
@@ -5406,7 +6829,6 @@ static HRESULT ExternalShellExtract(const Request & req,
             // Independent user application continues safely after mod unload.
             // Never terminate the extractor while it is writing user files.
             Wh_Log(L"[AP external] mod shutdown; extractor pid=%lu continues independently",child.dwProcessId);
-            if (detached) *detached = true;
             result = HRESULT_FROM_WIN32(ERROR_CANCELLED);break;
         }
     }
@@ -5589,7 +7011,8 @@ public:
         if (!queries) firstKeys = keys;
         ++queries;
         lastKeys = keys;
-        if (escape || GetTickCount64() - started_ >= 5ULL * 60 * 1000)
+        if (escape || CancelledForCurrentOperation() ||
+            GetTickCount64() - started_ >= 5ULL * 60 * 1000)
             return DRAGDROP_S_CANCEL;
         // The popup owns the physical gesture, so OLE's button state is valid.
         // Never combine this with stale cross-process state.
@@ -5624,6 +7047,7 @@ static constexpr UINT WM_BROWSER_MODEL_READY = WM_APP + 70;
 static constexpr UINT WM_BROWSER_LOCAL_EXTRACT_DONE = WM_APP + 71;
 static constexpr UINT WM_BROWSER_SETTINGS_CHANGED = WM_APP + 72;
 static constexpr UINT WM_BROWSER_MODEL_PREVIEW = WM_APP + 74; // early, partial rows
+static constexpr UINT WM_BROWSER_COLUMN_PREFERENCES_CHANGED = WM_APP + 75;
 static constexpr UINT_PTR kBrowserExtractStatusTimer = 8;
 static constexpr UINT_PTR kBrowserProgressTimer = 9;
 static constexpr UINT_PTR kBrowserParkSweepTimer = 10;
@@ -5644,8 +7068,7 @@ struct BrowserProgressSnapshot {
 static BrowserProgressSnapshot BrowserQueryProgress(const std::wstring & archive,DWORD ownerPid);
 struct BrowserLocalExtractResult { GUID requestId{}; HRESULT outcome{E_FAIL}; DWORD command{}; };
 // Completion is queried by the originating request GUID, never broadcast.
-// Stable case-insensitive archive key for message-only notification. No raw
-// pointers are sent to the broker manager, which is a Win32 window.
+// Stable case-insensitive archive key for notifications without a payload.
 static WPARAM BrowserArchiveKey(const std::wstring & path) {
     uint64_t hash = 14695981039346656037ULL;
     for (wchar_t c:path) {
@@ -5657,8 +7080,19 @@ static WPARAM BrowserArchiveKey(const std::wstring & path) {
 static constexpr wchar_t kPreviewHostClass[] = L"ArchivePreview.RealHost.0607";
 static std::atomic < HWND > g_gripManager{nullptr};
 static std::atomic < bool > g_gripReady{false};
-// Stop producers before draining raw-pointer WM_BROWSER_MODEL_* messages.
-static std::mutex g_browserModelPostMutex;
+static std::mutex g_browserPostMutex;
+template<typename T>
+static HRESULT PostBrowserPayload(UINT message,WPARAM param,std::unique_ptr<T> payload) {
+    std::lock_guard<std::mutex> lock(g_browserPostMutex);
+    if (g_cancelForShutdown.load(std::memory_order_acquire))
+        return HRESULT_FROM_WIN32(ERROR_CANCELLED);
+    const HWND manager = g_gripManager.load(std::memory_order_acquire);
+    if (!manager) return HRESULT_FROM_WIN32(ERROR_NOT_READY);
+    if (!PostMessageW(manager,message,param,reinterpret_cast<LPARAM>(payload.get())))
+        return HRESULT_FROM_WIN32(GetLastError());
+    payload.release();
+    return S_OK;
+}
 
 struct BrowserEntry {
     std::wstring name;
@@ -5810,7 +7244,7 @@ struct BrowserState {
     int appliedLanguage{-1};
     unsigned displayedMetadataMask{~0u};
     int resizingColumn{-1};
-    int resizeStartX{},resizeLeft{},resizeRight{};
+    int resizeStartX{},resizeStartWidth{};
     int pressedHeader{-1};
     HIMAGELIST shellIcons{}; // borrowed system small-icon list, never destroy
     HIMAGELIST rowSpacingIcons{}; // private list used only to set row height
@@ -5917,7 +7351,7 @@ static COLORREF BrowserPanel(const BrowserState * s){return s && s->paint.ready?
 static COLORREF BrowserMuted(const BrowserState * s){return s && s->paint.ready?s->paint.mutedColor:BrowserForeground(s);}
 static COLORREF BrowserBorder(const BrowserState * s){return s && s->paint.ready?s->paint.borderColor:BrowserForeground(s);}
 static void BrowserDiagnosticSnapshot(BrowserState * s,PCWSTR reason) {
-    if (!s) return;
+    if (!s || !ArchivePreviewDiagnostics::Enabled()) return;
     const size_t sampled = std::min<size_t>(64,s->entries.size());
     size_t owned = 0,folders = 0;
     for (size_t i = 0;i < sampled;++i) {
@@ -5942,7 +7376,7 @@ static void BrowserDiagnosticSnapshot(BrowserState * s,PCWSTR reason) {
     Wh_Log(L"[AP diag/broker] %s pid=%lu instance=%llu anchor=%p host=%p list=%p "
            L"parent=%p listParent=%p class=%s style=%llX parked=%d visible=%d "
            L"rows=%zu controlRows=%d sample=%zu owned=%zu folders=%zu pending=%d partial=%d "
-           L"paints=%u icons=%u misses=%u invalidRows=%u archive=%s folder=%s rendered=%s",
+           L"paints=%u icons=%u misses=%u invalidRows=%u dpi=%u root_folder=%d",
         reason,GetCurrentProcessId(),static_cast<unsigned long long>(s->instanceId),
         s->anchor,s->host,s->list,s->parent,s->list?GetParent(s->list):nullptr,klass,
         static_cast<unsigned long long>(s->list?GetWindowLongPtrW(s->list,GWL_STYLE):0),
@@ -5950,7 +7384,7 @@ static void BrowserDiagnosticSnapshot(BrowserState * s,PCWSTR reason) {
         s->list && IsWindow(s->list)?ListView_GetItemCount(s->list):0,sampled,owned,folders,
         s->modelPending?1:0,s->partialModelPreview?1:0,s->diagnosticRowPaints,
         s->diagnosticIconDraws,s->diagnosticIconMisses,s->diagnosticInvalidRows,
-        s->archive.c_str(),s->folder.c_str(),s->renderedFolder.c_str());
+        s->currentDpi,s->folder.empty()?1:0);
 }
 [[clang::no_destroy]] static std::unordered_map < HWND,std::shared_ptr < BrowserState >> g_browsers;
 static std::atomic < uint64_t > g_nextBrowserId{1};
@@ -5958,7 +7392,7 @@ static std::atomic < unsigned > g_activeQueueOperations{0};
 static void BrowserInvalidateFooter(BrowserState * s);
 
 static void BrowserScheduleListSettle(BrowserState * s) {
-    if (s && !s->parked && s->host && s->list && IsWindow(s->list))
+    if (s && !s->parked && s->host && IsWindow(s->host))
         SetTimer(s->host,kBrowserListSettleTimer,135,nullptr);
 }
 static HWND g_browserParkHost = nullptr; // UI-thread-owned, hidden top-level parking parent
@@ -6287,19 +7721,19 @@ static void BrowserPaintProgress(BrowserState * s,HDC dc,const RECT & bounds) {
         LineTo(dc,panel.right,panel.top);
         SelectObject(dc,old);DeleteObject(pen);
     }
-    const bool spanish = ArchivePreviewText::Language() == 1;
-    const wchar_t * message = s->progressStage == ARCHIVE_PROGRESS_EXTERNAL?
-        (spanish?L"Progreso en el programa externo":L"Progress in external application"):
-        s->progressCancelling?(spanish?L"Cancelando...":L"Cancelling..."):
-        (s->progressStage == ARCHIVE_PROGRESS_SCANNING?(spanish?L"Preparando archivos...":L"Preparing files..."):
-        (s->progressStage == ARCHIVE_PROGRESS_PICKING?(spanish?L"Elige una carpeta...":L"Choose extraction folder..."):
-        (s->progressStage == ARCHIVE_PROGRESS_STARTING?(spanish?L"Iniciando extracción...":L"Starting extraction..."):
-            (spanish?L"Extrayendo...":L"Extracting..."))));
-    std::wstring title = message;
+    using Text = ArchivePreviewText::Id;
+    Text message = Text::Extracting;
+    if (s->progressStage == ARCHIVE_PROGRESS_EXTERNAL) message = Text::ExternalProgress;
+    else if (s->progressCancelling) message = Text::Cancelling;
+    else if (s->progressStage == ARCHIVE_PROGRESS_SCANNING) message = Text::PreparingFiles;
+    else if (s->progressStage == ARCHIVE_PROGRESS_PICKING) message = Text::ExtractTo;
+    else if (s->progressStage == ARCHIVE_PROGRESS_STARTING) message = Text::StartingExtraction;
+    std::wstring title = ArchivePreviewText::Get(message);
     if (!s->progressCancelling && s->progressStage == ARCHIVE_PROGRESS_EXTRACTING &&
         s->progressKnown && s->progressPercent > 0) {
         title += L" " + std::to_wstring(s->progressPercent) + L"%";
-        if (s->progressPercent >= 100) title += spanish?L" (estimación)":L" (estimate)";
+        if (s->progressPercent >= 100)
+            title += L" (" + std::wstring(ArchivePreviewText::Get(Text::Estimate)) + L")";
     }
     title += L" · " + std::to_wstring(s->progressElapsedSeconds) + L" s";
     RECT label = panel;
@@ -6311,7 +7745,7 @@ static void BrowserPaintProgress(BrowserState * s,HDC dc,const RECT & bounds) {
     const int oldMode = SetBkMode(dc,TRANSPARENT);
     const COLORREF oldColor = SetTextColor(dc,foreground);
     DrawTextW(dc,title.c_str(), - 1, & label,
-        DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
+        DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX | ArchivePreviewText::TextDirection());
     SetTextColor(dc,oldColor);SetBkMode(dc,oldMode);SelectObject(dc,oldFont);
     RECT rail{panel.left + BrowserPx(s,9),panel.bottom - BrowserPx(s,8),
         panel.right - BrowserPx(s,9),panel.bottom - BrowserPx(s,4)};
@@ -6368,9 +7802,8 @@ static void BrowserPaintFooter(BrowserState * s,HDC dc,const RECT & bounds) {
     }
     const int selected = s->list && IsWindow(s->list)?ListView_GetSelectedCount(s->list):0;
     const size_t total = s->entries.size();
-    wchar_t count[128]{};
-    swprintf_s(count,L"%zu items    |    %d selected",total,selected);
-    std::wstring summary(count);
+    std::wstring summary = ArchivePreviewText::Get(ArchivePreviewText::Id::Selected);
+    summary += L" " + std::to_wstring(selected) + L" / " + std::to_wstring(total);
     if (selected == 1 && !BrowserStatusActive(s)) {
         const int index = ListView_GetNextItem(s->list, - 1,LVNI_SELECTED);
         if (index >= 0 && static_cast < size_t > (index) < s->entries.size()) {
@@ -6387,7 +7820,8 @@ static void BrowserPaintFooter(BrowserState * s,HDC dc,const RECT & bounds) {
     HFONT previous = static_cast < HFONT > (SelectObject(dc,s->rowFont?s->rowFont:GetStockObject(DEFAULT_GUI_FONT)));
     const int oldMode = SetBkMode(dc,TRANSPARENT);
     const COLORREF oldText = SetTextColor(dc,foreground);
-    DrawTextW(dc,summary.c_str(), - 1, & text,DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
+    DrawTextW(dc,summary.c_str(), - 1, & text,DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS |
+        DT_NOPREFIX | ArchivePreviewText::TextDirection());
     SetTextColor(dc,oldText);SetBkMode(dc,oldMode);SelectObject(dc,previous);
 }
 // Keep the entire footer in an opaque child window,
@@ -6403,7 +7837,7 @@ static LRESULT CALLBACK BrowserFooterProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp
     auto * s = reinterpret_cast < BrowserState *  > (GetWindowLongPtrW(hwnd,GWLP_USERDATA));
     switch(msg) {
       case WM_ERASEBKGND: {
-          if (s) ++s->footerErases;
+          if (s && ArchivePreviewDiagnostics::Enabled()) ++s->footerErases;
           if (s && wp) {
               RECT area{};GetClientRect(hwnd, & area);
               BrowserPaintFooter(s,reinterpret_cast < HDC > (wp),area);
@@ -6411,7 +7845,7 @@ static LRESULT CALLBACK BrowserFooterProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp
           return 1;
       }
       case WM_PAINT: {
-          if (s) ++s->footerPaints;
+          if (s && ArchivePreviewDiagnostics::Enabled()) ++s->footerPaints;
           PAINTSTRUCT paint{};
           HDC target = BeginPaint(hwnd, & paint);
           if (target && s) {
@@ -6471,79 +7905,39 @@ static std::wstring BrowserHeaderCaption(const BrowserState * s,BrowserColumnKin
 }
 static const std::wstring & BrowserEntryColumn(const BrowserEntry & entry, BrowserColumnKind column) {
     switch(column) {
-      case BrowserColumnKind::DateModified: {
-          static const std::wstring unavailable = L"—";
-          return entry.modifiedLabel.empty()?unavailable:entry.modifiedLabel;
-      }
+      case BrowserColumnKind::DateModified: return entry.modifiedLabel;
       case BrowserColumnKind::Type: return entry.typeLabel;
       case BrowserColumnKind::Size: return entry.sizeLabel;
       default: return entry.name;
     }
 }
-static int BrowserColumnTargetWidth(const BrowserState * s,BrowserColumnKind column) {
-    switch(column) {
-      case BrowserColumnKind::DateModified: return BrowserPx(s,150);
-      case BrowserColumnKind::Type: return BrowserPx(s,120);
-      case BrowserColumnKind::Size: return BrowserPx(s,94);
-      default: return BrowserPx(s,220);
-    }
-}
-static void BrowserLayoutColumns(BrowserState * s, int available) {
-    if (!s || !s->list || s->visibleColumns.empty()) return;
-    if (s->resizingColumn >= 0) return;
-    RECT viewport{};GetClientRect(s->list,&viewport);
-    const int fullWidth = std::max(1,std::min(available,static_cast<int>(viewport.right-viewport.left)));
-    const auto manual=ArchivePreviewColumns::Snapshot();
-    if(manual.custom){
-        std::vector<int> widths;
-        for(const auto kind:s->visibleColumns){
-            const int dip=manual.dips[static_cast<size_t>(kind)];
-            widths.push_back(dip>0?BrowserPx(s,dip):BrowserColumnTargetWidth(s,kind));
-        }
-        ArchivePreviewColumns::Fit(widths,fullWidth,BrowserPx(s,40));
-        for(size_t i=0;i<widths.size();++i)ListView_SetColumnWidth(s->list,static_cast<int>(i),widths[i]);
-        ArchivePreviewColumns::FitViewport(s->list);
-        BrowserRedrawHeader(s);return;
-    }
-    int otherWidth = 0;
-    for(size_t i = 1;i < s->visibleColumns.size();++i)
-        otherWidth += BrowserColumnTargetWidth(s,s->visibleColumns[i]);
-    const int minName = BrowserPx(s,150);
-    const int usableForOthers = std::max(0,fullWidth - minName);
-    int used = 0;
-    for(size_t i = 1;i < s->visibleColumns.size();++i) {
-        const int target = BrowserColumnTargetWidth(s,s->visibleColumns[i]);
-        const int width = otherWidth > usableForOthers && otherWidth > 0
-            ? std::max(1,MulDiv(target,usableForOthers,otherWidth)) : target;
-        ListView_SetColumnWidth(s->list,static_cast < int > (i),width);
-        used += width;
-    }
-    ListView_SetColumnWidth(s->list,0,std::max(1,fullWidth - used));
-    ArchivePreviewColumns::FitViewport(s->list);
+static void BrowserLayoutColumns(BrowserState * s) {
+    if (!s || !s->list || s->resizingColumn >= 0) return;
+    ArchivePreviewColumns::Layout(s->list,s->currentDpi,s->visibleColumns);
     BrowserRedrawHeader(s);
 }
-static void BrowserRebuildColumns(BrowserState * s) {
-    if(!s || !s->list || !IsWindow(s->list)) return;
-    if(GetCapture()==s->header)ReleaseCapture();
+static bool BrowserRebuildColumns(BrowserState * s) {
+    if(!s || !s->list || !IsWindow(s->list)) return false;
     s->resizingColumn=-1;s->pressedHeader=-1;
+    if(GetCapture()==s->header)ReleaseCapture();
     s->appliedLanguage = ArchivePreviewText::Language();
     s->visibleColumns.clear();
     s->visibleColumns.push_back(BrowserColumnKind::Name);
-    if(ArchivePreviewOptions::showDate.load()) s->visibleColumns.push_back(BrowserColumnKind::DateModified);
-    if(ArchivePreviewOptions::showType.load()) s->visibleColumns.push_back(BrowserColumnKind::Type);
-    if(ArchivePreviewOptions::showSize.load()) s->visibleColumns.push_back(BrowserColumnKind::Size);
+    if(ArchivePreviewOptions::ShowColumn(1)) s->visibleColumns.push_back(BrowserColumnKind::DateModified);
+    if(ArchivePreviewOptions::ShowColumn(2)) s->visibleColumns.push_back(BrowserColumnKind::Type);
+    if(ArchivePreviewOptions::ShowColumn(3)) s->visibleColumns.push_back(BrowserColumnKind::Size);
     for(int i = 0;i < 4;++i) if(!ListView_DeleteColumn(s->list,0)) break;
     LVCOLUMNW column{};column.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_FMT;
     for(size_t i = 0;i < s->visibleColumns.size();++i) {
         const BrowserColumnKind kind = s->visibleColumns[i];
         column.pszText = const_cast < LPWSTR > (BrowserColumnTitle(kind));
-        column.cx = BrowserColumnTargetWidth(s,kind);
+        column.cx = 0;
         column.fmt = kind == BrowserColumnKind::Size ? LVCFMT_RIGHT : LVCFMT_LEFT;
-        ListView_InsertColumn(s->list,static_cast < int > (i), & column);
+        if (ListView_InsertColumn(s->list,static_cast<int>(i), & column) < 0) return false;
     }
-    RECT r{};GetClientRect(s->list, & r);
-    BrowserLayoutColumns(s,static_cast < int > (r.right - r.left));
+    BrowserLayoutColumns(s);
     InvalidateRect(s->list,nullptr,FALSE);
+    return true;
 }
 
 // Use the Windows message font and small-icon metrics, not fixed 11 pt / 22 px.
@@ -6611,7 +8005,7 @@ static void BrowserApplyMetrics(BrowserState * s, bool force = false) {
     if (s->header && IsWindow(s->header))
         MoveWindow(s->header,0,0,width,headerHeight,TRUE);
     BrowserLayoutProgress(s);
-    BrowserLayoutColumns(s, width);
+    BrowserLayoutColumns(s);
     InvalidateRect(s->list, nullptr, FALSE);
     BrowserRedrawHeader(s);
     InvalidateRect(s->host, nullptr, FALSE);
@@ -6721,10 +8115,26 @@ static std::wstring BrowserZipFolderKey(std::wstring path) {
     return path;
 }
 static void BrowserZipUpdateFolder(BrowserZipFolderDates & dates,
-        const std::wstring & folder,const SYSTEMTIME & st,bool stored) {
-    if (folder.empty() || !SafeRelativePath(folder)) return;
-    auto [it,inserted] = dates.try_emplace(folder,BrowserZipFolderDate{st,stored});
-    if (inserted) return;
+        std::wstring_view folderPrefix,const std::wstring & name,bool directory,
+        WORD dosDate,WORD dosTime) {
+    if (!name.starts_with(folderPrefix)) return;
+    const std::wstring_view relative = std::wstring_view(name).substr(folderPrefix.size());
+    const size_t separator = relative.find(L'\\');
+    const bool stored = separator == std::wstring_view::npos;
+    if (relative.empty() || (stored && !directory) || !SafeRelativePath(name)) return;
+    SYSTEMTIME st{};
+    if (!BrowserZipDosTime(dosDate,dosTime,st)) return;
+
+    // SafeRelativePath limits each leaf to 255 characters. Store only the
+    // direct child name, regardless of the depth of the central directory entry.
+    constexpr size_t kMaxFolderDates = 8192;
+    std::wstring child(relative.substr(0,separator));
+    auto it = dates.find(child);
+    if (it == dates.end()) {
+        if (dates.size() < kMaxFolderDates)
+            dates.emplace(std::move(child),BrowserZipFolderDate{st,stored});
+        return;
+    }
     // Real directory timestamps outrank those derived from children.
     if (stored && !it->second.explicitFolder) {it->second = {st,true};return;}
     if (stored == it->second.explicitFolder &&
@@ -6732,14 +8142,19 @@ static void BrowserZipUpdateFolder(BrowserZipFolderDates & dates,
         it->second.local = st;
 }
 static bool BrowserReadZipFolderDates(const std::wstring & archive,
-                                     BrowserZipFolderDates & dates) {
+                                     const std::wstring & folder,
+                                     BrowserZipFolderDates & dates) try {
     dates.clear();
-    if (archive.size() < 4 || _wcsicmp(archive.c_str() + archive.size() - 4,L".zip") != 0)
+    if (CancelledForCurrentOperation() || archive.size() < 4 ||
+        _wcsicmp(archive.c_str() + archive.size() - 4,L".zip") != 0)
         return false;
+    std::wstring folderPrefix = BrowserZipFolderKey(folder);
+    if (!folderPrefix.empty()) folderPrefix += L'\\';
     HANDLE file = CreateFileW(archive.c_str(),GENERIC_READ,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,nullptr);
     if (file == INVALID_HANDLE_VALUE) return false;
+    const std::unique_ptr<void,decltype(&CloseHandle)> fileGuard(file,CloseHandle);
     // The end-of-central-directory record is at most 65,557 bytes from EOF.
     LARGE_INTEGER fileLength{};
     constexpr DWORD kTailMax = 65557;
@@ -6770,6 +8185,7 @@ static bool BrowserReadZipFolderDates(const std::wstring & archive,
             dirOffset == 0xFFFFFFFF || dirLength > kDirectoryMax ||
             static_cast < ULONGLONG > (dirOffset) + dirLength >
                 static_cast < ULONGLONG > (fileLength.QuadPart)) break; // Zip64: skip
+        if (CancelledForCurrentOperation()) break;
         std::vector < BYTE > directory(dirLength);
         from.QuadPart = dirOffset;
         got = 0;
@@ -6779,6 +8195,10 @@ static bool BrowserReadZipFolderDates(const std::wstring & archive,
         size_t at = 0;
         bool malformed = false;
         for (DWORD i = 0;i < records;++i) {
+            if (i % 128 == 0 && CancelledForCurrentOperation()) {
+                dates.clear();
+                return false;
+            }
             if (at > directory.size() || directory.size() - at < 46 ||
                 BrowserZipU32(directory.data() + at) != 0x02014b50) {malformed = true;break;}
             const BYTE * record = directory.data() + at;
@@ -6794,29 +8214,21 @@ static bool BrowserReadZipFolderDates(const std::wstring & archive,
             if (count > 0 && count <= 2048) {
                 std::wstring name(static_cast < size_t > (count),L'\0');
                 if (MultiByteToWideChar(page,flags,raw,nameBytes,name.data(),count) == count) {
-                    const bool folder = (!name.empty() && (name.back() == L'/' || name.back() == L'\\'));
+                    const bool directoryEntry = name.back() == L'/' || name.back() == L'\\';
                     name = BrowserZipFolderKey(std::move(name));
-                    SYSTEMTIME stamp{};
-                    if (SafeRelativePath(name) && BrowserZipDosTime(
-                            BrowserZipU16(record + 14),BrowserZipU16(record + 12),stamp)) {
-                        if (folder) BrowserZipUpdateFolder(dates,name,stamp,true);
-                        size_t endPart = name.size();
-                        while (endPart > 0) {
-                            const size_t slash = name.rfind(L'\\',endPart - 1);
-                            if (slash == std::wstring::npos) break;
-                            BrowserZipUpdateFolder(dates,name.substr(0,slash),stamp,false);
-                            endPart = slash;
-                        }
-                    }
+                    BrowserZipUpdateFolder(dates,folderPrefix,name,directoryEntry,
+                        BrowserZipU16(record + 14),BrowserZipU16(record + 12));
                 }
             }
             at += advance;
         }
-        if (malformed) {dates.clear();break;}
-        ok = true;
+        ok = !malformed && !CancelledForCurrentOperation();
     } while(false);
-    CloseHandle(file);
+    if (!ok) dates.clear();
     return ok;
+} catch (const std::bad_alloc &) {
+    dates.clear();
+    return false;
 }
 
 static std::wstring BrowserItemSize(IShellItem * item, ULONGLONG & bytes, bool & hasSize) {
@@ -6839,10 +8251,11 @@ static LRESULT BrowserCustomDraw(BrowserState * s, NMLVCUSTOMDRAW * draw) {
     if (draw->nmcd.dwDrawStage == CDDS_PREPAINT)
         return CDRF_NOTIFYITEMDRAW;
     if (draw->nmcd.dwDrawStage != CDDS_ITEMPREPAINT) return CDRF_DODEFAULT;
-    ++s->diagnosticRowPaints;
+    const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
+    if (diagnostics) ++s->diagnosticRowPaints;
     const size_t index = static_cast < size_t > (draw->nmcd.dwItemSpec);
     if (index >= s->entries.size()) {
-        ++s->diagnosticInvalidRows;
+        if (diagnostics) ++s->diagnosticInvalidRows;
         return CDRF_DODEFAULT;
     }
     HDC dc = draw->nmcd.hdc;
@@ -6886,7 +8299,8 @@ static LRESULT BrowserCustomDraw(BrowserState * s, NMLVCUSTOMDRAW * draw) {
     HFONT oldFont = static_cast < HFONT > (SelectObject(dc,s->rowFont ? s->rowFont : GetStockObject(DEFAULT_GUI_FONT)));
     const int oldMode = SetBkMode(dc,TRANSPARENT);
     const COLORREF oldColor = SetTextColor(dc,foreground);
-    const int left = BrowserPx(s,8);
+    const int origin = -ArchivePreviewColumns::HorizontalOffset(s->list);
+    const int left = origin + BrowserPx(s,8);
     const int iconSize = s->iconPixels;
     const int rowHeight = static_cast < int > (row.bottom - row.top);
     const int iconY = static_cast < int > (row.top) + std::max(0, (rowHeight - iconSize) / 2);
@@ -6899,16 +8313,17 @@ static LRESULT BrowserCustomDraw(BrowserState * s, NMLVCUSTOMDRAW * draw) {
             ImageList_GetIcon(s->shellIcons,entry.icon,ILD_TRANSPARENT);
         if (icon) {
             const BOOL drawn = DrawIconEx(dc,left,iconY,icon,iconSize,iconSize,0,nullptr,DI_NORMAL);
-            if (drawn) ++s->diagnosticIconDraws;
-            else ++s->diagnosticIconMisses;
+            if (diagnostics && drawn) ++s->diagnosticIconDraws;
+            else if (diagnostics) ++s->diagnosticIconMisses;
             if (!entry.iconImage) DestroyIcon(icon);
-        } else ++s->diagnosticIconMisses;
-    } else ++s->diagnosticIconMisses;
+        } else if (diagnostics) ++s->diagnosticIconMisses;
+    } else if (diagnostics) ++s->diagnosticIconMisses;
     const int nameWidth = ListView_GetColumnWidth(s->list,0);
     RECT name{left + iconSize + BrowserPx(s,7),row.top,
-        std::max(left + iconSize + BrowserPx(s,10),nameWidth - BrowserPx(s,8)),row.bottom};
-    DrawTextW(dc,entry.name.c_str(), - 1, & name,DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
-    int columnLeft = nameWidth;
+        origin + nameWidth - BrowserPx(s,8),row.bottom};
+    if (name.right > name.left)
+        DrawTextW(dc,entry.name.c_str(),-1,&name,DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
+    int columnLeft = origin + nameWidth;
     for(size_t col = 1;col < s->visibleColumns.size();++col) {
         const BrowserColumnKind kind = s->visibleColumns[col];
         const int width = ListView_GetColumnWidth(s->list,static_cast < int > (col));
@@ -6937,11 +8352,17 @@ static void BrowserPaintHeader(BrowserState * s, HDC dc, const RECT & client) {
     HFONT oldFont = static_cast < HFONT > (SelectObject(dc,s->headerFont ? s->headerFont : GetStockObject(DEFAULT_GUI_FONT)));
     const COLORREF oldColor = SetTextColor(dc,BrowserMuted(s));
     const int oldMode = SetBkMode(dc,TRANSPARENT);
+    const int origin = s->list ? -ArchivePreviewColumns::HorizontalOffset(s->list) : 0;
     const int nameWidth = s->list?ListView_GetColumnWidth(s->list,0):client.right;
-    RECT name{BrowserPx(s,13),0,nameWidth - BrowserPx(s,6),height};
+    const int textDc = SaveDC(dc);
+    if (textDc && s->list)
+        IntersectClipRect(dc,0,0,ArchivePreviewColumns::ViewportWidth(s->list),height);
+    RECT name{origin + BrowserPx(s,13),0,origin + nameWidth - BrowserPx(s,6),height};
     const std::wstring nameCaption = BrowserHeaderCaption(s,BrowserColumnKind::Name);
-    DrawTextW(dc,nameCaption.c_str(), - 1, & name,DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
-    int columnLeft = nameWidth;
+    if (name.right > name.left)
+        DrawTextW(dc,nameCaption.c_str(),-1,&name,
+            DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX | ArchivePreviewText::TextDirection());
+    int columnLeft = origin + nameWidth;
     for(size_t col = 1;col < s->visibleColumns.size();++col) {
         const BrowserColumnKind kind = s->visibleColumns[col];
         const int width = ListView_GetColumnWidth(s->list,static_cast < int > (col));
@@ -6949,11 +8370,12 @@ static void BrowserPaintHeader(BrowserState * s, HDC dc, const RECT & client) {
         if(cell.right > cell.left) {
             const std::wstring caption = BrowserHeaderCaption(s,kind);
             DrawTextW(dc,caption.c_str(), - 1, & cell,
-                DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX |
+                DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX | ArchivePreviewText::TextDirection() |
                 (kind == BrowserColumnKind::Size ? DT_RIGHT : DT_LEFT));
         }
         columnLeft += width;
     }
+    if (textDc) RestoreDC(dc,textDc);
     // No vertical separators between columns. Keep only the bottom rule.
     HPEN divider = s->paint.headerDivider ? s->paint.headerDivider :
         CreatePen(PS_SOLID,1,BrowserBorder(s));
@@ -6969,22 +8391,25 @@ static void BrowserPaintHeader(BrowserState * s, HDC dc, const RECT & client) {
 // so Explorer / prevhost parent invalidations cannot leave a white unpainted
 // strip behind the list. No custom painting is added to the marquee or rows.
 static int BrowserHeaderColumnAt(BrowserState * s,int x,bool edges) {
-    if(!s || !s->list)return -1;
-    int left=0;
-    for(size_t i=0;i<s->visibleColumns.size();++i){
-        const int right=left+ListView_GetColumnWidth(s->list,static_cast<int>(i));
-        if(edges){if(i+1<s->visibleColumns.size() && std::abs(x-right)<=BrowserPx(s,5))return static_cast<int>(i);}
-        else if(x>=left && x<right)return static_cast<int>(i);
-        left=right;
+    if (!s || !s->list || x < 0 || x >= ArchivePreviewColumns::ViewportWidth(s->list)) return -1;
+    x += ArchivePreviewColumns::HorizontalOffset(s->list);
+    int left = 0;
+    for (int i = 0; i < static_cast<int>(s->visibleColumns.size()); ++i) {
+        const int width = ListView_GetColumnWidth(s->list,i);
+        const int right = left + width;
+        if (edges) {
+            if (width > 0 && std::abs(x - right) <= BrowserPx(s,5) &&
+                ArchivePreviewColumns::DragWidth(s->list,s->currentDpi,
+                    static_cast<unsigned>(s->visibleColumns[i]),width) >= 0) return i;
+        } else if (x >= left && x < right) return i;
+        left = right;
     }
     return -1;
 }
-static void BrowserRememberColumnWidths(BrowserState * s){
-    auto value=ArchivePreviewColumns::Snapshot();value.custom=true;
-    const int dpi=static_cast<int>(s->currentDpi?s->currentDpi:96);
-    for(size_t i=0;i<s->visibleColumns.size();++i)
-        value.dips[static_cast<size_t>(s->visibleColumns[i])]=std::max(1,MulDiv(ListView_GetColumnWidth(s->list,static_cast<int>(i)),96,dpi));
-    ArchivePreviewColumns::Store(value);
+static void BrowserSaveColumnPreference(const ArchivePreviewColumns::Change & change) {
+    if (!ArchivePreviewColumns::Save(change)) ArchivePreviewColumns::UseForSession(change);
+    if (HWND manager = g_gripManager.load())
+        PostMessageW(manager,WM_BROWSER_COLUMN_PREFERENCES_CHANGED,change.visibility,0);
 }
 static LRESULT CALLBACK BrowserHeaderProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     if (msg == WM_NCCREATE) {
@@ -6998,10 +8423,9 @@ static LRESULT CALLBACK BrowserHeaderProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM
         if(s){
             POINT point{GET_X_LPARAM(lp),GET_Y_LPARAM(lp)};
             if(msg==WM_RBUTTONUP)ClientToScreen(hwnd,&point);
-            if(ArchivePreviewColumns::VisibilityMenu(hwnd,point)){
-                if(HWND manager=g_gripManager.load())
-                    PostMessageW(manager,WM_BROWSER_SETTINGS_CHANGED,0,0);
-            }
+            ArchivePreviewColumns::Change change;
+            if (ArchivePreviewColumns::VisibilityMenu(hwnd,point,change))
+                BrowserSaveColumnPreference(change);
         }
         return 0;
 
@@ -7020,21 +8444,23 @@ static LRESULT CALLBACK BrowserHeaderProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM
             s->pressedHeader=-1;
             if(edge>=0){
                 s->resizingColumn=edge;s->resizeStartX=x;
-                s->resizeLeft=ListView_GetColumnWidth(s->list,edge);
-                s->resizeRight=ListView_GetColumnWidth(s->list,edge+1);
+                s->resizeStartWidth=ListView_GetColumnWidth(s->list,edge);
                 SetCapture(hwnd);
             }else{s->pressedHeader=BrowserHeaderColumnAt(s,x,false);SetCapture(hwnd);}
         }
         return 0;
       case WM_MOUSEMOVE:
         if(s && s->resizingColumn>=0 && GetCapture()==hwnd){
-            const int minimum=std::max(1,std::min(BrowserPx(s,40),(s->resizeLeft+s->resizeRight)/2));
-            const int delta=std::clamp(GET_X_LPARAM(lp)-s->resizeStartX,
-                minimum-s->resizeLeft,s->resizeRight-minimum);
-            const int column=s->resizingColumn;
-            // Shrink first so the total width never temporarily creates a scrollbar.
-            if(delta>=0){ListView_SetColumnWidth(s->list,column+1,s->resizeRight-delta);ListView_SetColumnWidth(s->list,column,s->resizeLeft+delta);}
-            else{ListView_SetColumnWidth(s->list,column,s->resizeLeft+delta);ListView_SetColumnWidth(s->list,column+1,s->resizeRight-delta);}
+            const int column = s->resizingColumn;
+            const int delta = GET_X_LPARAM(lp) - s->resizeStartX;
+            const unsigned kind = static_cast<unsigned>(s->visibleColumns[column]);
+            const int width = delta ? ArchivePreviewColumns::DragWidth(s->list,s->currentDpi,
+                kind,s->resizeStartWidth + delta) : s->resizeStartWidth;
+            if (width >= 0 && width != ListView_GetColumnWidth(s->list,column)) {
+                ListView_SetColumnWidth(s->list,column,width);
+                if (ArchivePreviewOptions::hideHorizontalScrollbar.load())
+                    ArchivePreviewColumns::HideScrollbar(s->list);
+            }
             InvalidateRect(hwnd,nullptr,FALSE);InvalidateRect(s->list,nullptr,FALSE);
             SetCursor(LoadCursorW(nullptr,IDC_SIZEWE));
         }
@@ -7043,22 +8469,35 @@ static LRESULT CALLBACK BrowserHeaderProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM
         if(s){
             const bool resized=s->resizingColumn>=0;
             const int pressed=s->pressedHeader;
-            if(resized)BrowserRememberColumnWidths(s);
+            if (resized) {
+                const int column = s->resizingColumn;
+                const unsigned kind = static_cast<unsigned>(s->visibleColumns[column]);
+                const int width = ListView_GetColumnWidth(s->list,column);
+                if (width != s->resizeStartWidth) {
+                    const int dips = MulDiv(width,96,s->currentDpi ? s->currentDpi : 96);
+                    BrowserSaveColumnPreference({kind,dips,0});
+                }
+            }
             s->resizingColumn=-1;s->pressedHeader=-1;
             if(GetCapture()==hwnd)ReleaseCapture();
+            if (resized) BrowserLayoutColumns(s);
             if(!resized && pressed>=0 && !s->modelPending && !s->dragging && !s->updating &&
                 pressed==BrowserHeaderColumnAt(s,GET_X_LPARAM(lp),false))
                 BrowserSortByColumn(s,s->visibleColumns[static_cast<size_t>(pressed)]);
         }
         return 0;
+      case WM_CANCELMODE:
       case WM_CAPTURECHANGED:
-        if(s){
-            if(s->resizingColumn>=0)BrowserRememberColumnWidths(s);
-            s->resizingColumn=-1;s->pressedHeader=-1;
+        if (s) {
+            const bool resized = s->resizingColumn >= 0;
+            s->resizingColumn = -1;
+            s->pressedHeader = -1;
+            if (GetCapture() == hwnd) ReleaseCapture();
+            if (resized) BrowserLayoutColumns(s);
         }
         return 0;
       case WM_ERASEBKGND:
-          if (s) ++s->headerErases;
+          if (s && ArchivePreviewDiagnostics::Enabled()) ++s->headerErases;
           // WM_ERASEBKGND is sometimes sent without a subsequent WM_PAINT
           // during prevhost/Explorer transitions. Supply the dark content now.
           if (s && wp) {
@@ -7067,7 +8506,7 @@ static LRESULT CALLBACK BrowserHeaderProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM
           }
           return 1;
       case WM_PAINT: {
-          if (s) ++s->headerPaints;
+          if (s && ArchivePreviewDiagnostics::Enabled()) ++s->headerPaints;
           PAINTSTRUCT ps{};
           HDC target = BeginPaint(hwnd, & ps);
           if (target && s) {
@@ -7145,12 +8584,14 @@ static bool BrowserChromeLooksWhite(COLORREF color) {
 static void BrowserChromeAudit(BrowserState * s, const wchar_t * reason,
                                bool repairIfWhite = false) {
     if (!s || s->parked || !s->host || !IsWindow(s->host)) return;
+    const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
+    const bool canRepair = repairIfWhite && s->dark && !s->highContrast;
+    if (!canRepair && !diagnostics) return;
     const COLORREF header = BrowserChromeCorner(s->header);
     const COLORREF footer = BrowserChromeCorner(s->footer);
     const bool badHeader = s->dark && !s->highContrast && BrowserChromeLooksWhite(header);
     const bool badFooter = s->dark && !s->highContrast && BrowserChromeLooksWhite(footer);
-    wchar_t line[430]{};
-    swprintf_s(line,L"ArchivePreview: chrome audit (%ls): dark=%d host=%d header=%d footer=%d "
+    Wh_Log(L"ArchivePreview: chrome audit (%ls): dark=%d host=%d header=%d footer=%d "
         L"pixelH=%06lX pixelF=%06lX paintH=%u paintF=%u eraseH=%u eraseF=%u "
         L"paintHost=%u eraseHost=%u repairs=%u suspect=%d/%d",
         reason?reason:L"unspecified",s->dark?1:0,
@@ -7160,7 +8601,6 @@ static void BrowserChromeAudit(BrowserState * s, const wchar_t * reason,
         static_cast < unsigned long > (header),static_cast < unsigned long > (footer),
         s->headerPaints,s->footerPaints,s->headerErases,s->footerErases,
         s->hostPaints,s->hostErases,s->repairs,badHeader?1:0,badFooter?1:0);
-    Wh_Log(L"%s", line);
     if (!repairIfWhite || (!badHeader && !badFooter)) return;
     // No parent/whole-list erase. Repaint only the offending child; never
     // move/recreate the ListView or footer controls.
@@ -7305,7 +8745,7 @@ static void BrowserShowSelectionMenu(BrowserState * s,POINT screenPoint) {
     AppendMenuW(menu,MF_STRING,kSelectedMenuTo,ArchivePreviewText::Get(ArchivePreviewText::Id::SelectedTo));
 
     const UINT selection = TrackPopupMenu(menu,TPM_RETURNCMD | TPM_NONOTIFY |
-        TPM_RIGHTBUTTON,screenPoint.x,screenPoint.y,0,s->host,nullptr);
+        TPM_RIGHTBUTTON | ArchivePreviewText::MenuDirection(),screenPoint.x,screenPoint.y,0,s->host,nullptr);
     DestroyMenu(menu);
     if (selection == kSelectedMenuHere) BrowserExtractSelected(s,true);
     else if (selection == kSelectedMenuTo) BrowserExtractSelected(s,false);
@@ -7357,8 +8797,7 @@ struct BrowserModelJob {
     FILETIME modified{};
     ULONGLONG archiveBytes{};
     HRESULT result{E_FAIL};
-    bool collectDates{};
-    bool collectSizes{};
+    unsigned metadataMask{};
     bool heavyModelSlot{}; // worker owns a reserved heavy and global slot
     std::vector < BrowserEntry > rows;
 };
@@ -7373,6 +8812,8 @@ struct BrowserModelPreview {
     uint64_t generation{};
     std::wstring archive;
     std::wstring folder;
+    ULONGLONG archiveBytes{};
+    unsigned metadataMask{};
     std::vector < BrowserEntry > rows;
 };
 static void BrowserPublishFirstRows(const BrowserModelJob & job,
@@ -7381,7 +8822,7 @@ static void BrowserPublishFirstRows(const BrowserModelJob & job,
         CancelledForCurrentOperation()) return;
     // The receiver adopts this pointer into unique_ptr when it processes the
     // posted message. Delete it here if posting is not possible or fails.
-    auto * preview = new(std::nothrow) BrowserModelPreview;
+    std::unique_ptr<BrowserModelPreview> preview(new(std::nothrow) BrowserModelPreview);
     if (!preview) return;
     preview->ticket = job.cancelled;
     preview->anchor = job.anchor;
@@ -7389,11 +8830,10 @@ static void BrowserPublishFirstRows(const BrowserModelJob & job,
     preview->generation = job.generation;
     preview->archive = job.archive;
     preview->folder = job.folder;
+    preview->archiveBytes = job.archiveBytes;
+    preview->metadataMask = job.metadataMask;
     preview->rows = rows;
-    std::lock_guard < std::mutex > postLock(g_browserModelPostMutex);
-    const HWND manager = g_gripManager.load(std::memory_order_acquire);
-    if (!manager || !PostMessageW(manager,WM_BROWSER_MODEL_PREVIEW,0,
-        reinterpret_cast < LPARAM > (preview))) delete preview;
+    PostBrowserPayload(WM_BROWSER_MODEL_PREVIEW,0,std::move(preview));
 }
 
 // Query the original archive's URL zone before invoking an independent
@@ -7403,8 +8843,8 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
         const auto & archive = job.archive;
         const auto & folder = job.folder;
         auto & fresh = job.rows;
-        const ULONGLONG started = GetTickCount64();
-        ULONGLONG firstItemMs = 0;
+        const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
+        const ULONGLONG started = diagnostics?GetTickCount64():0;
         ULONGLONG firstNameMs = 0;
         ULONGLONG metadataMs = 0;
         ULONGLONG nextMs = 0;
@@ -7417,12 +8857,12 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
         // columns, including dates when enabled on large archives.
         // This does NOT extract files, and leaves all transfer/extract safety
         // checks in their own code paths unchanged. Unavailable values stay blank.
-        const bool fastLargeBrowse = job.archiveBytes >= kBrowserHeavyArchiveBytes;
         BrowserZipFolderDates zipFolderDates;
-        const bool wantDate = job.collectDates;
-        const bool wantSize = job.collectSizes;
-        if (wantDate) BrowserReadZipFolderDates(archive,zipFolderDates);
-        if (job.heavyModelSlot) {
+        const bool wantDate = (job.metadataMask & 1u) != 0;
+        const bool wantSize = (job.metadataMask & 2u) != 0;
+        if (wantDate) BrowserReadZipFolderDates(archive,folder,zipFolderDates);
+        if (CancelledForCurrentOperation()) return HRESULT_FROM_WIN32(ERROR_CANCELLED);
+        if (diagnostics && job.heavyModelSlot) {
             wchar_t startedLine[160]{};
             swprintf_s(startedLine,L"ArchivePreview model start: archiveMiB=%llu active=%u heavy=%u",
                 job.archiveBytes / (1024ULL * 1024),
@@ -7432,7 +8872,7 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
         }
         IShellItem * root = nullptr;
         HRESULT hr = OpenArchive(archive, & root);
-        if (job.heavyModelSlot) {
+        if (diagnostics && job.heavyModelSlot) {
             wchar_t openLine[140]{};
             swprintf_s(openLine,L"ArchivePreview model OpenArchive: hr=0x%08lX ms=%llu",
                 static_cast < unsigned long > (hr),GetTickCount64() - started);
@@ -7446,8 +8886,8 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
         IEnumShellItems * enumeration = nullptr;
         if (SUCCEEDED(hr))
             hr = current->BindToHandler(nullptr,BHID_EnumItems,IID_PPV_ARGS( & enumeration));
-        const ULONGLONG shellReadyMs = GetTickCount64() - started;
-        if (job.heavyModelSlot) {
+        const ULONGLONG shellReadyMs = diagnostics?GetTickCount64() - started:0;
+        if (diagnostics && job.heavyModelSlot) {
             wchar_t bindLine[160]{};
             swprintf_s(bindLine,L"ArchivePreview model BindToHandler: hr=0x%08lX ms=%llu",
                 static_cast < unsigned long > (hr),shellReadyMs);
@@ -7462,14 +8902,14 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
         bool firstNextLogSent = false;
         if (SUCCEEDED(hr)) for (;;) {
             if(CancelledForCurrentOperation()){hr = HRESULT_FROM_WIN32(ERROR_CANCELLED);break;}
-            if (job.heavyModelSlot && !firstNextLogSent) {
+            if (diagnostics && job.heavyModelSlot && !firstNextLogSent) {
                 Wh_Log(L"ArchivePreview model: waiting for first EnumItems::Next");
                 firstNextLogSent = true;
             }
             IShellItem * item = nullptr;ULONG fetched = 0;
-            const ULONGLONG nextStart = GetTickCount64();
+            const ULONGLONG nextStart = diagnostics?GetTickCount64():0;
             const HRESULT next = enumeration->Next(1, & item, & fetched);
-            nextMs += GetTickCount64() - nextStart;
+            if (diagnostics) nextMs += GetTickCount64() - nextStart;
             if (next == S_FALSE) {hr = S_OK;break;}
             if (FAILED(next) || !item || !fetched) {
                 if (item) item->Release();
@@ -7481,13 +8921,13 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
                 Wh_Log(L"Archive folder exceeds 200,000 entries; use paged recovery view");
                 break;
             }
-            const ULONGLONG itemStart = GetTickCount64();
+            const ULONGLONG itemStart = diagnostics?GetTickCount64():0;
             BrowserEntry entry{};
-            const ULONGLONG nameStart = GetTickCount64();
+            const ULONGLONG nameStart = diagnostics?GetTickCount64():0;
             entry.name = GetName(item);
-            namesMs += GetTickCount64() - nameStart;
+            if (diagnostics) namesMs += GetTickCount64() - nameStart;
             if (entry.name.empty()) {item->Release();continue;}
-            if (!firstNameMs) firstNameMs = GetTickCount64() - started;
+            if (diagnostics && !firstNameMs) firstNameMs = GetTickCount64() - started;
             entry.relative = folder.empty()?entry.name:folder + L"\\" + entry.name;
             if (!SafeRelativePath(entry.relative)) {item->Release();continue;}
             // Publish the first safe name even before SFGAO_FOLDER. Some
@@ -7499,11 +8939,11 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
                 BrowserPublishFirstRows(job,first);
             }
             SFGAOF attrs = SFGAO_FOLDER;
-            const ULONGLONG attrsStart = GetTickCount64();
+            const ULONGLONG attrsStart = diagnostics?GetTickCount64():0;
             entry.folder = SUCCEEDED(item->GetAttributes(SFGAO_FOLDER, & attrs)) && (attrs & SFGAO_FOLDER);
-            attrsMs += GetTickCount64() - attrsStart;
+            if (diagnostics) attrsMs += GetTickCount64() - attrsStart;
             if (wantSize || wantDate) {
-                const ULONGLONG propertiesStart = GetTickCount64();
+                const ULONGLONG propertiesStart = diagnostics?GetTickCount64():0;
                 if (!entry.folder && wantSize) {
                     entry.sizeLabel = BrowserItemSize(item,entry.sizeBytes,entry.hasSize);
                     if (entry.hasSize && entry.sizeBytes == 0 &&
@@ -7515,7 +8955,7 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
                 if (wantDate) {
                     entry.modifiedLabel = BrowserModifiedLabel(item,entry.modifiedValue);
                     if (entry.folder && entry.modifiedLabel.empty() && !zipFolderDates.empty()) {
-                        const auto found = zipFolderDates.find(BrowserZipFolderKey(entry.relative));
+                        const auto found = zipFolderDates.find(BrowserZipFolderKey(entry.name));
                         if (found != zipFolderDates.end()) {
                             entry.modifiedLabel = BrowserZipDateLabel(found->second.local);
                             FILETIME local{},utc{};
@@ -7524,7 +8964,7 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
                         }
                     }
                 }
-                propertiesMs += GetTickCount64() - propertiesStart;
+                if (diagnostics) propertiesMs += GetTickCount64() - propertiesStart;
             }
             entry.typeLabel = BrowserTypeLabel(entry.name,entry.folder,typeByExtension);
             // Query a synthetic file attribute only once per extension.
@@ -7559,8 +8999,7 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
                 }
             }
             fresh.push_back(std::move(entry));
-            metadataMs += GetTickCount64() - itemStart;
-            if (!firstItemMs) firstItemMs = GetTickCount64() - started;
+            if (diagnostics) metadataMs += GetTickCount64() - itemStart;
             if (fresh.size() == 128 || fresh.size() == 1024)
                 BrowserPublishFirstRows(job,fresh);
             item->Release();
@@ -7573,12 +9012,10 @@ static HRESULT BrowserBuildModel(BrowserModelJob & job) {
             if (a.folder != b.folder) return a.folder > b.folder;
             return CompareStringOrdinal(a.name.c_str(), - 1,b.name.c_str(), - 1,TRUE) == CSTR_LESS_THAN;
         });
-    wchar_t modelTiming[380]{};
-    swprintf_s(modelTiming,L"ArchivePreview model: fastLarge=%u archiveMiB=%llu shellReady=%llu ms firstName=%llu ms total=%llu ms next=%llu ms name=%llu ms attrs=%llu ms properties=%llu ms perItem=%llu ms rows=%zu",
-        fastLargeBrowse?1u:0u,job.archiveBytes / (1024ULL * 1024),
-        shellReadyMs,firstNameMs,GetTickCount64() - started,
-        nextMs,namesMs,attrsMs,propertiesMs,metadataMs,fresh.size());
-    Wh_Log(L"%s", modelTiming);
+    if (diagnostics)
+        Wh_Log(L"[AP model] archive_mib=%llu shell_ms=%llu first_name_ms=%llu total_ms=%llu next_ms=%llu name_ms=%llu attributes_ms=%llu properties_ms=%llu item_ms=%llu rows=%zu",
+            job.archiveBytes / (1024ULL * 1024),shellReadyMs,firstNameMs,GetTickCount64() - started,
+            nextMs,namesMs,attrsMs,propertiesMs,metadataMs,fresh.size());
     return S_OK;
 }
 // A single expensive archive/folder/signature may be requested by many
@@ -7593,16 +9030,23 @@ struct BrowserModelInflight {
     FILETIME stamp{};
     ULONGLONG bytes{};
     ArchiveFileIdentity identity{};
+    unsigned metadataMask{};
 };
 static std::vector < BrowserModelInflight > g_browserModelInflight;
 static bool BrowserSameInflight(const BrowserModelInflight & record,
         const std::wstring & archive,const std::wstring & folder,
-        const FILETIME & stamp,ULONGLONG bytes,const ArchiveFileIdentity & identity) {
-    return !record.ticket->load(std::memory_order_acquire) &&
+        const FILETIME & stamp,ULONGLONG bytes,const ArchiveFileIdentity & identity,
+        unsigned metadataMask) {
+    return record.metadataMask == metadataMask && !record.ticket->load(std::memory_order_acquire) &&
         _wcsicmp(record.archive.c_str(),archive.c_str()) == 0 &&
         _wcsicmp(record.folder.c_str(),folder.c_str()) == 0 &&
         record.bytes == bytes && record.identity == identity &&
         CompareFileTime( & record.stamp, & stamp) == 0;
+}
+static void BrowserCancelOutdatedMetadata() {
+    for (const auto & active : g_browserModelInflight)
+        if (active.metadataMask != ArchivePreviewOptions::MetadataMask(active.bytes))
+            active.ticket->store(true,std::memory_order_release);
 }
 static void BrowserForgetInflight(const std::shared_ptr < std::atomic < bool >>  & ticket) {
     std::erase_if(g_browserModelInflight,[ & ](const BrowserModelInflight & r) {
@@ -7626,7 +9070,7 @@ static DWORD WINAPI BrowserModelWorker(LPVOID raw) {
     // Global shutdown owns the worker handle and joins before unloading.
     // The UI manager consumes this pointer on a successful PostMessageW.
     // Otherwise the worker deletes it. Neither path ignores an ownership result.
-    auto * job = static_cast < BrowserModelJob *  > (raw);
+    std::unique_ptr<BrowserModelJob> job(static_cast<BrowserModelJob*>(raw));
     const HRESULT initialized = OleInitialize(nullptr);
     if (SUCCEEDED(initialized)) {
         ScopedOperationCancellation scope(job->cancelled.get());
@@ -7635,33 +9079,26 @@ static DWORD WINAPI BrowserModelWorker(LPVOID raw) {
     } else job->result = initialized;
     // Snapshot before transferring ownership of job to the UI thread.
     const bool heavyModelSlot = job->heavyModelSlot;
-    {
-        std::lock_guard < std::mutex > postLock(g_browserModelPostMutex);
-        const HWND manager = g_gripManager.load(std::memory_order_acquire);
-        if (!manager || !PostMessageW(manager,WM_BROWSER_MODEL_READY,0,
-                                      reinterpret_cast < LPARAM > (job))) {
-            Wh_Log(L"Background archive model discarded: browser manager exited");
-            delete job;
-        }
-    }
+    if (FAILED(PostBrowserPayload(WM_BROWSER_MODEL_READY,0,std::move(job))))
+        Wh_Log(L"Background archive model discarded: browser manager exited");
     BrowserReleaseModelWorker(heavyModelSlot);
     return 0;
 }
 static HRESULT BrowserScheduleModel(BrowserState * s,bool bypassDebounce = false) {
     if (!s || !s->host) return E_POINTER;
-    if (s->modelPending && s->modelPendingFolder == s->folder &&
-        s->modelCancelled && !s->modelCancelled->load()) return S_OK;
     FILETIME archiveStamp{};
     ULONGLONG archiveBytes{};
     ArchiveFileIdentity identity{};
     if (!GetArchiveSignature(s->archive,archiveStamp,archiveBytes, & identity))
         return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
     const bool heavy = BrowserHeavyModelRequest(s->archive,archiveBytes);
+    const unsigned metadataMask = ArchivePreviewOptions::MetadataMask(archiveBytes);
     // A reattached pane subscribes to the same worker instead of requesting
     // another blocking IEnumShellItems::Next on the same 10 GiB archive.
     for (const auto & active:g_browserModelInflight) {
         if (BrowserSameInflight(active,s->archive,s->folder,archiveStamp,
-                                archiveBytes,identity)) {
+                                archiveBytes,identity,metadataMask)) {
+            if (s->modelPending && s->modelCancelled == active.ticket) return S_OK;
             KillTimer(s->host,kBrowserHeavyDebounceTimer);
             KillTimer(s->host,kBrowserModelRetryTimer);
             s->heavyModelDeferred = false;
@@ -7672,6 +9109,9 @@ static HRESULT BrowserScheduleModel(BrowserState * s,bool bypassDebounce = false
             return S_OK;
         }
     }
+    s->modelPending = false;
+    s->modelPendingFolder = s->folder;
+    s->modelCancelled.reset();
     // A quick sequence of selections should not start COM work for every
     // large archive the cursor passes. A stable selection starts after 550ms.
     if (heavy && !bypassDebounce) {
@@ -7692,7 +9132,7 @@ static HRESULT BrowserScheduleModel(BrowserState * s,bool bypassDebounce = false
         static std::atomic < ULONGLONG > lastCapacityLog{0};
         const ULONGLONG now = GetTickCount64();
         ULONGLONG previous = lastCapacityLog.load(std::memory_order_relaxed);
-        if ((previous == 0 || now - previous >= 5000) &&
+        if (ArchivePreviewDiagnostics::Enabled() && (previous == 0 || now - previous >= 5000) &&
             lastCapacityLog.compare_exchange_strong(previous,now,
                 std::memory_order_relaxed)) {
             wchar_t line[180]{};
@@ -7728,13 +9168,11 @@ static HRESULT BrowserScheduleModel(BrowserState * s,bool bypassDebounce = false
     job->archiveBytes = archiveBytes;
     job->archiveIdentity = identity;
     job->heavyModelSlot = heavy;
-    const unsigned metadataMask=ArchivePreviewOptions::MetadataMask(archiveBytes);
-    job->collectDates = (metadataMask & 1u)!=0;
-    job->collectSizes = (metadataMask & 2u)!=0;
+    job->metadataMask = metadataMask;
     // The worker cannot outlive Wh_ModUninit: every handle is joined.
     // Register before the thread starts: completion can happen immediately.
     g_browserModelInflight.push_back({job->cancelled,s->archive,s->folder,
-                                     archiveStamp,archiveBytes,identity});
+                                     archiveStamp,archiveBytes,identity,metadataMask});
     // After a successful CreateThread the worker owns and eventually deletes job.
     HANDLE thread = ArchivePreviewWorkerLifetime::Start(BrowserModelWorker,job);
     if (!thread) {
@@ -7769,30 +9207,67 @@ static void BrowserRestoreView(BrowserState * s,const BrowserSavedView & view) {
     }
     if (focus >= 0 && focus < ListView_GetItemCount(s->list))
         ListView_SetItemState(s->list,focus,LVIS_FOCUSED,LVIS_FOCUSED);
-    if (top > 0 && top < ListView_GetItemCount(s->list)) ListView_EnsureVisible(s->list,top,FALSE);
+    if (top >= 0 && top < ListView_GetItemCount(s->list)) {
+        const int delta = top - ListView_GetTopIndex(s->list);
+        RECT row{};
+        if (delta && ListView_GetItemRect(s->list,top,&row,LVIR_BOUNDS) && row.bottom > row.top)
+            ListView_Scroll(s->list,0,delta * (row.bottom - row.top));
+        else if (delta)
+            ListView_EnsureVisible(s->list,top,FALSE);
+    }
 }
-static bool BrowserEnsureList(BrowserState * s);
+static bool BrowserEnsureList(BrowserState * s,bool restoreView = true);
+static bool BrowserListHasRows(const BrowserState * s) {
+    if (!s->list || !IsWindow(s->list) || GetParent(s->list) != s->host) return false;
+    const LONG_PTR style = GetWindowLongPtrW(s->list,GWL_STYLE);
+    if ((style & (LVS_TYPEMASK | LVS_OWNERDATA)) != (LVS_REPORT | LVS_OWNERDATA) ||
+        ListView_GetItemCount(s->list) != static_cast<int>(s->entries.size()) ||
+        s->visibleColumns.empty()) return false;
+    LVCOLUMNW last{};
+    last.mask = LVCF_WIDTH;
+    return ListView_GetColumn(s->list,static_cast<int>(s->visibleColumns.size())-1,&last) != FALSE;
+}
+static bool BrowserApplyListRows(BrowserState * s) {
+    if (!s->list || !IsWindow(s->list) || GetParent(s->list) != s->host ||
+        !ListView_SetItemCountEx(s->list,0,LVSICF_NOSCROLL) ||
+        !ListView_SetItemCountEx(s->list,static_cast<int>(s->entries.size()),LVSICF_NOSCROLL) ||
+        !BrowserListHasRows(s)) return BrowserEnsureList(s,false);
+    return true;
+}
 static void BrowserSortByColumn(BrowserState * s,BrowserColumnKind kind) {
     if (!s || !s->list || !s->hasRenderedFolder || s->partialModelPreview || s->modelPending || s->dragging) return;
     BrowserSaveView(s);
     const auto view = BrowserCache(s->archive).views[s->renderedFolder];
+    const auto previousColumn = s->sortColumn;
+    const bool previousAscending = s->sortAscending;
     if (s->sortColumn == kind) s->sortAscending = !s->sortAscending;
     else {s->sortColumn = kind;s->sortAscending = true;}
     s->updating = true;
     SendMessageW(s->list,WM_SETREDRAW,FALSE,0);
     BrowserOrderRows(s->entries,s->sortColumn,s->sortAscending);
-    ListView_SetItemCountEx(s->list,0,LVSICF_NOSCROLL);
-    const bool ready = ListView_SetItemCountEx(s->list,static_cast<int>(s->entries.size()),LVSICF_NOSCROLL) != 0 || BrowserEnsureList(s);
+    bool ready = BrowserApplyListRows(s);
+    if (!ready) {
+        s->sortColumn = previousColumn;
+        s->sortAscending = previousAscending;
+        BrowserOrderRows(s->entries,previousColumn,previousAscending);
+        ready = ListView_SetItemCountEx(s->list,static_cast<int>(s->entries.size()),LVSICF_NOSCROLL) &&
+            BrowserListHasRows(s);
+    }
     if (ready) BrowserRestoreView(s,view);
     s->hoverIndex = s->pressIndex = -1;s->pressSelectionRows.clear();
     s->pressCustomHit = false;s->pressSelectionOversized = false;s->pressWasSelected = false;
     s->updating = false;
     SendMessageW(s->list,WM_SETREDRAW,TRUE,0);InvalidateRect(s->list,nullptr,FALSE);
-    BrowserRedrawHeader(s,false);BrowserNotifySelectionCount(s);BrowserSaveView(s);
+    BrowserRedrawHeader(s,false);
+    if (ready) {
+        BrowserNotifySelectionCount(s);
+        BrowserSaveView(s);
+    } else BrowserScheduleListSettle(s);
 }
 static HRESULT BrowserRefresh(BrowserState * s, bool forceRebuild = false) {
-    if (!s || !s->list) return E_POINTER;
-    const ULONGLONG refreshStarted = GetTickCount64();
+    if (!s || !s->host) return E_POINTER;
+    const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
+    const ULONGLONG refreshStarted = diagnostics?GetTickCount64():0;
     BrowserSaveView(s);
     if (s->manualRefreshPending && s->folder != s->manualRefreshFolder) {
         // Navigation supersedes the explicit refresh. Ignore its old status.
@@ -7834,7 +9309,8 @@ static HRESULT BrowserRefresh(BrowserState * s, bool forceRebuild = false) {
         fromCache = true;
         // A no-op refresh does not need to copy up to 2,000 cached rows.
         if (!forceRebuild && !s->partialModelPreview && s->hasRenderedFolder &&
-            s->renderedFolder == s->folder) return BrowserEnsureList(s)?S_OK:E_FAIL;
+            s->renderedFolder == s->folder && s->displayedMetadataMask == cache.metadataMask)
+            return BrowserEnsureList(s)?S_OK:E_FAIL;
         if (hit->second.size() > 12000) {
             fresh = std::move(hit->second);
             cache.folders.erase(hit);
@@ -7845,12 +9321,13 @@ static HRESULT BrowserRefresh(BrowserState * s, bool forceRebuild = false) {
         return BrowserScheduleModel(s);
     }
     BrowserOrderRows(fresh,s->sortColumn,s->sortAscending);
-    const ULONGLONG modelReady = GetTickCount64();
+    const ULONGLONG modelReady = diagnostics?GetTickCount64():0;
     // Navigating to the same unchanged folder must never clear the selection or
     // scroll position. Skip model replacement when cached metadata is identical,
     // but still validate the retained native control.
     if (!forceRebuild && !s->partialModelPreview && s->hasRenderedFolder &&
-        s->renderedFolder == s->folder && BrowserSameEntries(s->entries,fresh))
+        s->renderedFolder == s->folder && s->displayedMetadataMask == cache.metadataMask &&
+        BrowserSameEntries(s->entries,fresh))
         return BrowserEnsureList(s)?S_OK:E_FAIL;
 
     BrowserSavedView view{};
@@ -7862,24 +9339,25 @@ static HRESULT BrowserRefresh(BrowserState * s, bool forceRebuild = false) {
     // LVS_OWNERDATA renders visible rows only: replacing 100,000 per-row
     // LVM_INSERTITEM calls with a single item count update avoids UI stalls.
     // Selection state is managed by the control; reset it before restore.
-    ListView_SetItemCountEx(s->list,0,LVSICF_NOSCROLL);
-    bool countApplied = ListView_SetItemCountEx(s->list,
-        static_cast < int > (s->entries.size()),LVSICF_NOSCROLL) != 0 &&
-        ListView_GetItemCount(s->list) == static_cast<int>(s->entries.size());
-    if (!countApplied) countApplied = BrowserEnsureList(s);
-    if (!countApplied) {
+    if (!BrowserApplyListRows(s)) {
         // Keep the previous model/folder coherent if recreating the control
         // also failed. Do not leave child rows labelled as the parent folder.
         s->entries.swap(fresh);
+        if (ListView_SetItemCountEx(s->list,static_cast<int>(s->entries.size()),LVSICF_NOSCROLL) &&
+            BrowserListHasRows(s)) {
+            if (const auto old = cache.views.find(s->renderedFolder); old != cache.views.end())
+                BrowserRestoreView(s,old->second);
+        }
         s->updating = false;
         SendMessageW(s->list,WM_SETREDRAW,TRUE,0);
-        Wh_Log(L"Virtual ListView refused item-count update and recreation failed");
+        BrowserScheduleListSettle(s);
+        Wh_Log(L"[AP list] model update failed expected=%zu",s->entries.size());
         return E_FAIL;
     }
     BrowserRestoreView(s,view);
     s->renderedFolder = s->folder;
     s->hasRenderedFolder = true;
-    s->displayedMetadataMask = ArchivePreviewOptions::MetadataMask(cache.bytes);
+    s->displayedMetadataMask = cache.metadataMask;
     s->partialModelPreview = false; // Only validated cache rows reach this commit.
     s->hoverIndex =  - 1;
     s->pressIndex =  - 1;
@@ -7893,15 +9371,10 @@ static HRESULT BrowserRefresh(BrowserState * s, bool forceRebuild = false) {
     BrowserScheduleListSettle(s);
     BrowserNotifyDepth(s);
     BrowserInvalidateFooter(s);
-    wchar_t line[180]{};
-    swprintf_s(line,L"Broker ListView: folderDepth=%u entries=%zu cache=%u selected=%zu",
-        s->folder.empty()?0u:1u,s->entries.size(),fromCache?1u:0u,view.selectedPaths.size());
-    Wh_Log(L"%s", line);
-    wchar_t timing[160]{};
-    swprintf_s(timing,L"Broker timings: model=%llu ms UI=%llu ms total=%llu ms rows=%zu",
-        modelReady - refreshStarted,GetTickCount64() - modelReady,
-        GetTickCount64() - refreshStarted,s->entries.size());
-    Wh_Log(L"%s", timing);
+    if (diagnostics)
+        Wh_Log(L"[AP list] model_ms=%llu ui_ms=%llu total_ms=%llu rows=%zu cache=%u saved_selection=%zu",
+            modelReady - refreshStarted,GetTickCount64() - modelReady,
+            GetTickCount64() - refreshStarted,s->entries.size(),fromCache?1u:0u,view.selectedPaths.size());
     return S_OK;
 }
 static void BrowserBack(BrowserState * s) {
@@ -7914,9 +9387,9 @@ static void BrowserBack(BrowserState * s) {
 }
 static void BrowserOpenSelected(BrowserState * s,int clickedRow =  - 1) {
     if (s) {
-        Wh_Log(L"[AP diag/broker] Open requested instance=%llu anchor=%p row=%d pending=%d rows=%zu folder=%s",
+        Wh_Log(L"[AP diag/broker] Open requested instance=%llu anchor=%p row=%d pending=%d rows=%zu root_folder=%d",
             static_cast<unsigned long long>(s->instanceId),s->anchor,clickedRow,
-            s->modelPending?1:0,s->entries.size(),s->folder.c_str());
+            s->modelPending?1:0,s->entries.size(),s->folder.empty()?1:0);
     }
     if (!s || s->modelPending) return;
     int i = clickedRow >= 0 ? clickedRow : ListView_GetNextItem(s->list, - 1,LVNI_SELECTED);
@@ -8017,33 +9490,190 @@ struct ExternalDragEntry {
     std::wstring displayPath;
     bool directory{};
 };
-static bool ExternalDragRemoveTree(const std::wstring & path,unsigned depth = 0) {
-    const DWORD attrs = GetFileAttributesW(path.c_str());
-    if (attrs == INVALID_FILE_ATTRIBUTES) return GetLastError() == ERROR_FILE_NOT_FOUND ||
-        GetLastError() == ERROR_PATH_NOT_FOUND;
-    if (attrs & FILE_ATTRIBUTE_REPARSE_POINT)
-        return (attrs & FILE_ATTRIBUTE_DIRECTORY)?RemoveDirectoryW(path.c_str()) != FALSE:
-            DeleteFileW(path.c_str()) != FALSE;
-    bool success = true;
-    if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
-        if (depth >= 128) return false;
-        WIN32_FIND_DATAW entry{};
-        HANDLE find = FindFirstFileW((path+L"\\*").c_str(),&entry);
-        if (find != INVALID_HANDLE_VALUE) {
-            do {
-                if (wcscmp(entry.cFileName,L".") == 0 || wcscmp(entry.cFileName,L"..") == 0) continue;
-                if (!ExternalDragRemoveTree(path+L"\\"+entry.cFileName,depth+1)) success = false;
-            } while (FindNextFileW(find,&entry));
-            if (GetLastError() != ERROR_NO_MORE_FILES) success = false;
-            FindClose(find);
-        } else if (GetLastError() != ERROR_FILE_NOT_FOUND) success = false;
-        SetFileAttributesW(path.c_str(),attrs & ~FILE_ATTRIBUTE_READONLY);
-        if (!RemoveDirectoryW(path.c_str())) success = false;
-    } else {
-        SetFileAttributesW(path.c_str(),(attrs & ~FILE_ATTRIBUTE_READONLY) | FILE_ATTRIBUTE_NORMAL);
-        if (!DeleteFileW(path.c_str())) success = false;
+using ExternalDragHandle = std::unique_ptr<void,decltype(&CloseHandle)>;
+static constexpr wchar_t kExternalDragPrefix[] = L"ArchivePreview-Drag-";
+static constexpr wchar_t kExternalDragLeaseName[] = L"\\lease.bin";
+static constexpr wchar_t kExternalDragFilesName[] = L"\\files";
+
+struct ExternalDragPathLocks {
+    std::vector<HANDLE> retained;
+    ~ExternalDragPathLocks() {
+        for (HANDLE handle:retained) CloseHandle(handle);
     }
-    return success;
+    bool Lock(const fs::path & path) {
+        // Reserve before opening handles so allocation failure leaves no untracked handle.
+        const auto relative = path.relative_path();
+        retained.reserve(static_cast<size_t>(std::distance(relative.begin(),relative.end())));
+        return SUCCEEDED(ArchivePreviewPathSafety::CheckPathComponents(path,true,true,&retained,true));
+    }
+};
+static ExternalDragHandle OpenExternalDragEntry(const std::wstring & path,DWORD access,
+                                                DWORD share,DWORD creation = OPEN_EXISTING) {
+    const std::wstring openPath = ArchivePreviewPathSafety::ExtendedLocalPath(path);
+    HANDLE handle = CreateFileW(openPath.c_str(),access,share,nullptr,creation,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
+    return ExternalDragHandle(handle == INVALID_HANDLE_VALUE ? nullptr : handle,CloseHandle);
+}
+static bool ExternalDragIsDirectory(HANDLE handle) {
+    FILE_ATTRIBUTE_TAG_INFO info{};
+    return GetFileInformationByHandleEx(handle,FileAttributeTagInfo,&info,sizeof(info)) &&
+        (info.FileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) ==
+            FILE_ATTRIBUTE_DIRECTORY;
+}
+static bool SameExternalDragEntry(HANDLE first,HANDLE second) {
+    BY_HANDLE_FILE_INFORMATION a{},b{};
+    return GetFileInformationByHandle(first,&a) && GetFileInformationByHandle(second,&b) &&
+        (a.nFileIndexHigh || a.nFileIndexLow) && a.dwVolumeSerialNumber == b.dwVolumeSerialNumber &&
+        a.nFileIndexHigh == b.nFileIndexHigh && a.nFileIndexLow == b.nFileIndexLow;
+}
+static HRESULT ExternalDragRoot(std::wstring & path,ExternalDragPathLocks & rootLocks,bool create) {
+    std::vector<wchar_t> storage(32768);
+    if (!Wh_GetModStoragePath(storage.data(),storage.size())) return E_ACCESSDENIED;
+    std::wstring sid;
+    const HRESULT sidResult = ArchiveGetUserSid(sid);
+    if (FAILED(sidResult)) return sidResult;
+    const fs::path base = fs::path(storage.data()).lexically_normal();
+    const fs::path parent = base.has_filename() ? base : base.parent_path();
+    ExternalDragPathLocks locks;
+    if (!locks.Lock(parent)) return E_ACCESSDENIED;
+    path = (parent / (std::wstring(L"ArchivePreview-ExternalDrag-")+sid)).wstring();
+    if (create) {
+        const std::wstring createPath = ArchivePreviewPathSafety::ExtendedLocalPath(path);
+        const std::wstring acl = L"D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;" + sid + L")";
+        PSECURITY_DESCRIPTOR descriptor = nullptr;
+        if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(
+                acl.c_str(),SDDL_REVISION_1,&descriptor,nullptr))
+            return HRESULT_FROM_WIN32(GetLastError());
+        SECURITY_ATTRIBUTES attributes{sizeof(attributes),descriptor,FALSE};
+        const BOOL created = CreateDirectoryW(createPath.c_str(),&attributes);
+        const DWORD error = created ? ERROR_SUCCESS : GetLastError();
+        LocalFree(descriptor);
+        if (error != ERROR_SUCCESS && error != ERROR_ALREADY_EXISTS)
+            return HRESULT_FROM_WIN32(error);
+    }
+    const auto root = OpenExternalDragEntry(path,FILE_READ_ATTRIBUTES | READ_CONTROL,
+        FILE_SHARE_READ | FILE_SHARE_WRITE);
+    if (!root) return HRESULT_FROM_WIN32(GetLastError());
+    if (!ExternalDragIsDirectory(root.get()) || !rootLocks.Lock(fs::path(path)))
+        return E_ACCESSDENIED;
+    PSID expected = nullptr;
+    if (!ConvertStringSidToSidW(sid.c_str(),&expected)) return E_ACCESSDENIED;
+    PSID owner = nullptr;
+    PSECURITY_DESCRIPTOR descriptor = nullptr;
+    const DWORD error = GetSecurityInfo(root.get(),SE_FILE_OBJECT,OWNER_SECURITY_INFORMATION,
+        &owner,nullptr,nullptr,nullptr,&descriptor);
+    const bool allowed = error == ERROR_SUCCESS && owner && EqualSid(owner,expected);
+    LocalFree(descriptor);
+    LocalFree(expected);
+    return allowed ? S_OK : E_ACCESSDENIED;
+}
+static bool ExternalDragLeaseIsIdle(HANDLE file) {
+    FILE_ATTRIBUTE_TAG_INFO attrs{};
+    LARGE_INTEGER start{},size{};
+    ExternalDragLeaseRecord record{};
+    DWORD read = 0;
+    if (!GetFileInformationByHandleEx(file,FileAttributeTagInfo,&attrs,sizeof(attrs)) ||
+        (attrs.FileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) ||
+        !GetFileSizeEx(file,&size) || size.QuadPart != sizeof(record) ||
+        !SetFilePointerEx(file,start,nullptr,FILE_BEGIN) ||
+        !ReadFile(file,&record,sizeof(record),&read,nullptr) || read != sizeof(record) ||
+        record.signature != kExternalDragLeaseSignature)
+        return false;
+
+    const bool hasCreationTime = record.created.dwHighDateTime || record.created.dwLowDateTime;
+    if (record.status == ExternalDragLeaseStatus::Idle) return !record.pid && !hasCreationTime;
+    if (record.status != ExternalDragLeaseStatus::Running || !record.pid || !hasCreationTime)
+        return false;
+    const ExternalDragHandle process(OpenProcess(SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION,
+        FALSE,record.pid),CloseHandle);
+    if (!process) return GetLastError() == ERROR_INVALID_PARAMETER;
+    if (WaitForSingleObject(process.get(),0) == WAIT_OBJECT_0) return true;
+    FILETIME created{},exited{},kernel{},user{};
+    return GetProcessTimes(process.get(),&created,&exited,&kernel,&user) &&
+        CompareFileTime(&record.created,&created) != 0;
+}
+static bool DeleteExternalDragEntry(HANDLE file) {
+    FILE_DISPOSITION_INFO remove{TRUE};
+    if (SetFileInformationByHandle(file,FileDispositionInfo,&remove,sizeof(remove))) return true;
+    if (GetLastError() != ERROR_ACCESS_DENIED) return false;
+    FILE_DISPOSITION_INFO_EX readOnly{
+        FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE};
+    return SetFileInformationByHandle(file,FileDispositionInfoEx,&readOnly,sizeof(readOnly)) != FALSE;
+}
+static bool ExternalDragRemoveTree(const std::wstring & path,bool cancellable,unsigned depth = 0) {
+    if (depth >= 128 || (cancellable && CancelledForCurrentOperation())) return false;
+    // Open the entry itself and keep it pinned during enumeration. Reparse
+    // points are removed by handle without visiting their targets.
+    const auto file = OpenExternalDragEntry(path,DELETE | FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE);
+    if (!file) {
+        const DWORD error = GetLastError();
+        return error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND;
+    }
+    FILE_ATTRIBUTE_TAG_INFO info{};
+    if (!GetFileInformationByHandleEx(file.get(),FileAttributeTagInfo,&info,sizeof(info)))
+        return false;
+    if ((info.FileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) ==
+            FILE_ATTRIBUTE_DIRECTORY) {
+        WIN32_FIND_DATAW entry{};
+        const std::wstring searchPath = ArchivePreviewPathSafety::ExtendedLocalPath(path+L"\\*");
+        HANDLE found = FindFirstFileW(searchPath.c_str(),&entry);
+        if (found == INVALID_HANDLE_VALUE) {
+            if (GetLastError() != ERROR_FILE_NOT_FOUND) return false;
+        } else {
+            const std::unique_ptr<void,decltype(&FindClose)> find(found,FindClose);
+            bool removed = true;
+            do {
+                if (cancellable && CancelledForCurrentOperation()) return false;
+                if (wcscmp(entry.cFileName,L".") == 0 || wcscmp(entry.cFileName,L"..") == 0) continue;
+                if (!ExternalDragRemoveTree(path+L"\\"+entry.cFileName,cancellable,depth+1))
+                    removed = false;
+            } while (FindNextFileW(find.get(),&entry));
+            if (GetLastError() != ERROR_NO_MORE_FILES || !removed) return false;
+        }
+    }
+    return DeleteExternalDragEntry(file.get());
+}
+static bool ReclaimExternalDragStage(const std::wstring & path,HANDLE directory,
+                                     ExternalDragHandle & lease,bool cancellable) {
+    if (!lease || !ExternalDragLeaseIsIdle(lease.get()) ||
+        !ExternalDragRemoveTree(path+kExternalDragFilesName,cancellable) ||
+        !DeleteExternalDragEntry(lease.get())) return false;
+    lease.reset();
+    return DeleteExternalDragEntry(directory);
+}
+static DWORD WINAPI RecoverExternalDragStages(LPVOID) try {
+    if (CancelledForCurrentOperation()) return 0;
+    std::wstring root;
+    ExternalDragPathLocks locks;
+    if (FAILED(ExternalDragRoot(root,locks,false))) return 0;
+    const std::wstring prefix(kExternalDragPrefix);
+    WIN32_FIND_DATAW entry{};
+    const std::wstring searchPath = ArchivePreviewPathSafety::ExtendedLocalPath(root+L"\\"+prefix+L"*");
+    HANDLE found = FindFirstFileW(searchPath.c_str(),&entry);
+    if (found == INVALID_HANDLE_VALUE) return 0;
+    const std::unique_ptr<void,decltype(&FindClose)> find(found,FindClose);
+    do {
+        if (CancelledForCurrentOperation()) break;
+        const std::wstring name(entry.cFileName);
+        if (name.size() != prefix.size()+38 || !name.starts_with(prefix) ||
+            name[prefix.size()] != L'{' || name.back() != L'}') continue;
+        GUID id{};
+        if (FAILED(CLSIDFromString(name.c_str()+prefix.size(),&id))) continue;
+        const std::wstring path = root+L"\\"+name;
+        auto directory = OpenExternalDragEntry(path,DELETE | FILE_READ_ATTRIBUTES,
+            FILE_SHARE_READ | FILE_SHARE_WRITE);
+        if (!directory || !ExternalDragIsDirectory(directory.get())) continue;
+        auto lease = OpenExternalDragEntry(path+kExternalDragLeaseName,GENERIC_READ | DELETE,0);
+        if (ReclaimExternalDragStage(path,directory.get(),lease,true)) {
+            directory.reset();
+            Wh_Log(L"[AP external drag] phase=recovery-cleanup result=removed stage=%s",name.c_str());
+        }
+    } while (FindNextFileW(find.get(),&entry));
+    return 0;
+} catch (const std::bad_alloc &) {
+    Wh_Log(L"[AP external drag] recovery cleanup stopped: out of memory");
+    return 1;
 }
 struct ExternalDragStage : public std::enable_shared_from_this<ExternalDragStage> {
     Request request;
@@ -8052,10 +9682,11 @@ struct ExternalDragStage : public std::enable_shared_from_this<ExternalDragStage
     ULONGLONG archiveBytes{};
     ArchiveFileIdentity identity{};
     std::wstring directory;
+    ExternalDragHandle directoryHandle{nullptr,CloseHandle};
+    ExternalDragHandle lease{nullptr,CloseHandle};
     std::mutex mutex;
     HANDLE ready{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
     bool attempted{};
-    bool detached{};
     HRESULT outcome{E_PENDING};
     bool MatchesArchive() const {
         FILETIME stamp{};ULONGLONG bytes{};ArchiveFileIdentity current{};
@@ -8064,26 +9695,37 @@ struct ExternalDragStage : public std::enable_shared_from_this<ExternalDragStage
     }
     HRESULT Extract() {
         if (!MatchesArchive()) return HRESULT_FROM_WIN32(ERROR_FILE_INVALID);
-        std::vector<wchar_t> temp(32768);
-        const DWORD length = GetTempPathW(static_cast<DWORD>(temp.size()),temp.data());
-        if (!length || length >= temp.size()) return E_FAIL;
         GUID unique{};
         HRESULT hr = CoCreateGuid(&unique);
         if (FAILED(hr)) return hr;
         wchar_t text[48]{};StringFromGUID2(unique,text,_countof(text));
-        directory = std::wstring(temp.data())+L"ArchivePreview-Drag-"+text;
-        if (!CreateDirectoryW(directory.c_str(),nullptr)) {
-            const DWORD error = GetLastError();directory.clear();
-            return HRESULT_FROM_WIN32(error);
+        std::wstring files;
+        {
+            std::wstring root;
+            ExternalDragPathLocks locks;
+            hr = ExternalDragRoot(root,locks,true);
+            if (FAILED(hr)) return hr;
+            directory = root+L"\\"+kExternalDragPrefix+text;
+            files = directory+kExternalDragFilesName;
+            if (!CreateDirectoryW(ArchivePreviewPathSafety::ExtendedLocalPath(directory).c_str(),nullptr))
+                return HRESULT_FROM_WIN32(GetLastError());
+            directoryHandle = OpenExternalDragEntry(directory,DELETE | FILE_READ_ATTRIBUTES,
+                FILE_SHARE_READ | FILE_SHARE_WRITE);
+            if (!directoryHandle || !ExternalDragIsDirectory(directoryHandle.get()))
+                return E_ACCESSDENIED;
+            lease = OpenExternalDragEntry(directory+kExternalDragLeaseName,
+                GENERIC_READ | GENERIC_WRITE | DELETE,0,CREATE_NEW);
+            if (!lease) return HRESULT_FROM_WIN32(GetLastError());
+            if (!WriteExternalDragLease(lease.get(),ExternalDragLeaseStatus::Idle)) return E_FAIL;
+            if (!CreateDirectoryW(ArchivePreviewPathSafety::ExtendedLocalPath(files).c_str(),nullptr))
+                return HRESULT_FROM_WIN32(GetLastError());
         }
-        if (!ArchivePreviewPathSafety::ValidPathComponents(fs::path(directory),true,false))
-            return E_ACCESSDENIED;
         Request extraction = request;
         extraction.command = ARCHIVE_BROKER_EXTRACT_SELECTED_HERE;
         extraction.requestId = unique;
-        Wh_Log(L"[AP external drag] extracting selection=%zu staging=%s",
-            extraction.items.size(),directory.c_str());
-        hr = ExternalShellExtract(extraction,options,directory,&detached);
+        Wh_Log(L"[AP external drag] phase=extract items=%zu stage=ArchivePreview-Drag-%s",
+            extraction.items.size(),text);
+        hr = ExternalShellExtract(extraction,options,files,lease.get());
         if (FAILED(hr)) return hr;
         return MatchesArchive()?S_OK:HRESULT_FROM_WIN32(ERROR_FILE_INVALID);
     }
@@ -8092,7 +9734,11 @@ struct ExternalDragStage : public std::enable_shared_from_this<ExternalDragStage
             static_cast<std::shared_ptr<ExternalDragStage>*>(raw));
         const auto stage = *holder;
         const HRESULT initialized = OleInitialize(nullptr);
-        stage->outcome = SUCCEEDED(initialized)?stage->Extract():initialized;
+        try {
+            stage->outcome = SUCCEEDED(initialized)?stage->Extract():initialized;
+        } catch (const std::bad_alloc &) {
+            stage->outcome = E_OUTOFMEMORY;
+        }
         if (SUCCEEDED(initialized)) OleUninitialize();
         Wh_Log(L"[AP external drag] preparation result=0x%08lX",static_cast<unsigned long>(stage->outcome));
         SetEvent(stage->ready);
@@ -8100,6 +9746,7 @@ struct ExternalDragStage : public std::enable_shared_from_this<ExternalDragStage
     }
     HRESULT Prepare() {
         if (!ready) return E_OUTOFMEMORY;
+        if (CancelledForCurrentOperation()) return HRESULT_FROM_WIN32(ERROR_CANCELLED);
         {
             std::lock_guard<std::mutex> lock(mutex);
             if (!attempted) {
@@ -8113,26 +9760,53 @@ struct ExternalDragStage : public std::enable_shared_from_this<ExternalDragStage
         // Concurrent/reentrant content requests wait for the SAME extraction.
         // The extractor runs on a separate STA, so dispatching an incoming OLE
         // request cannot deadlock an extraction suspended on this UI thread.
-        for (;;) {
-            const DWORD wake = MsgWaitForMultipleObjects(1,&ready,FALSE,250,QS_ALLINPUT);
-            if (wake == WAIT_OBJECT_0) return outcome;
+        const HANDLE events[] = {g_brokerStopEvent,ready};
+        while (!CancelledForCurrentOperation()) {
+            const DWORD wake = MsgWaitForMultipleObjectsEx(_countof(events),events,INFINITE,
+                QS_ALLINPUT,MWMO_INPUTAVAILABLE);
+            if (wake == WAIT_OBJECT_0) break;
+            if (wake == WAIT_OBJECT_0 + 1) return outcome;
             if (wake == WAIT_FAILED) return HRESULT_FROM_WIN32(GetLastError());
-            if (wake == WAIT_OBJECT_0 + 1) {
+            if (wake == WAIT_OBJECT_0 + _countof(events)) {
                 MSG pending{};
-                while (PeekMessageW(&pending,nullptr,0,0,PM_REMOVE)) {
-                    if (pending.message == WM_QUIT) continue;
+                while (!CancelledForCurrentOperation() &&
+                       PeekMessageW(&pending,nullptr,0,0,PM_REMOVE)) {
+                    if (pending.message == WM_QUIT) {
+                        PostQuitMessage(static_cast<int>(pending.wParam));
+                        return HRESULT_FROM_WIN32(ERROR_CANCELLED);
+                    }
                     TranslateMessage(&pending);DispatchMessageW(&pending);
                 }
             }
         }
+        return HRESULT_FROM_WIN32(ERROR_CANCELLED);
     }
     ~ExternalDragStage() {
         if (ready) CloseHandle(ready);
-        if (directory.empty()) return;
-        // A launched extractor can outlive mod shutdown. Do not remove its
-        // working directory while that independent process is still writing.
-        if (detached || !ExternalDragRemoveTree(directory))
-            Wh_Log(L"[AP external drag] temporary files retained at %s",directory.c_str());
+        if (!directoryHandle) return;
+        bool removed = false;
+        try {
+            ExternalDragPathLocks locks;
+            if (locks.Lock(fs::path(directory).parent_path()) &&
+                ExternalDragIsDirectory(directoryHandle.get())) {
+                // The path may have changed when no ancestor handles were held.
+                const auto current = OpenExternalDragEntry(directory,FILE_READ_ATTRIBUTES,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
+                if (current && SameExternalDragEntry(directoryHandle.get(),current.get())) {
+                    removed = lease ? ReclaimExternalDragStage(directory,directoryHandle.get(),lease,false) :
+                        DeleteExternalDragEntry(directoryHandle.get());
+                }
+            }
+        } catch (const std::bad_alloc &) {
+            // The next broker session can retry using the persistent record.
+        }
+        directoryHandle.reset();
+        if (ArchivePreviewDiagnostics::Enabled()) {
+            const wchar_t * stageName = wcsrchr(directory.c_str(),L'\\');
+            Wh_Log(L"[AP external drag] phase=cleanup result=%s stage=%s",
+                removed?L"removed":L"retained",
+                stageName?stageName+1:directory.c_str());
+        }
     }
 };
 // Retain the stage until every stream/clone has been released by the target.
@@ -8141,9 +9815,13 @@ class ExternalDragStream final : public IStream {
     std::atomic<ULONG> refs_{1};
     IStream * stream_{};
     std::shared_ptr<ExternalDragStage> stage_;
+    const LONG index_;
 public:
-    ExternalDragStream(IStream * stream,std::shared_ptr<ExternalDragStage> stage):
-        stream_(stream),stage_(std::move(stage)){++ArchivePreviewHost::g_objects;++g_externalDragInterfaces;}
+    ExternalDragStream(IStream * stream,std::shared_ptr<ExternalDragStage> stage,LONG index):
+        stream_(stream),stage_(std::move(stage)),index_(index) {
+        ++ArchivePreviewHost::g_objects;
+        ++g_externalDragInterfaces;
+    }
     ~ExternalDragStream(){stream_->Release();stage_.reset();--ArchivePreviewHost::g_objects;--g_externalDragInterfaces;}
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid,void ** out) override {
         if (!out) return E_POINTER;*out = nullptr;
@@ -8152,11 +9830,24 @@ public:
     }
     ULONG STDMETHODCALLTYPE AddRef() override {return refs_.fetch_add(1)+1;}
     ULONG STDMETHODCALLTYPE Release() override {const ULONG n = refs_.fetch_sub(1)-1;if(!n)delete this;return n;}
-    HRESULT STDMETHODCALLTYPE Read(void * p,ULONG n,ULONG * read) override {return stream_->Read(p,n,read);}
+    HRESULT STDMETHODCALLTYPE Read(void * p,ULONG n,ULONG * read) override {
+        const HRESULT hr = stream_->Read(p,n,read);
+        if (FAILED(hr))
+            Wh_Log(L"[AP external drag] phase=stream-read index=%ld hr=0x%08lX",
+                index_,static_cast<unsigned long>(hr));
+        return hr;
+    }
     HRESULT STDMETHODCALLTYPE Write(const void *,ULONG,ULONG * written) override {if(written)*written=0;return STG_E_ACCESSDENIED;}
     HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER move,DWORD origin,ULARGE_INTEGER * position) override {return stream_->Seek(move,origin,position);}
     HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER) override {return STG_E_ACCESSDENIED;}
-    HRESULT STDMETHODCALLTYPE CopyTo(IStream * target,ULARGE_INTEGER n,ULARGE_INTEGER * read,ULARGE_INTEGER * written) override {return stream_->CopyTo(target,n,read,written);}
+    HRESULT STDMETHODCALLTYPE CopyTo(IStream * target,ULARGE_INTEGER n,
+                                     ULARGE_INTEGER * read,ULARGE_INTEGER * written) override {
+        const HRESULT hr = stream_->CopyTo(target,n,read,written);
+        if (FAILED(hr))
+            Wh_Log(L"[AP external drag] phase=stream-copy index=%ld hr=0x%08lX",
+                index_,static_cast<unsigned long>(hr));
+        return hr;
+    }
     HRESULT STDMETHODCALLTYPE Commit(DWORD flags) override {return stream_->Commit(flags);}
     HRESULT STDMETHODCALLTYPE Revert() override {return stream_->Revert();}
     HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER at,ULARGE_INTEGER n,DWORD type) override {return stream_->LockRegion(at,n,type);}
@@ -8166,7 +9857,7 @@ public:
         if (!out) return E_POINTER;*out = nullptr;
         IStream * copy = nullptr;HRESULT hr = stream_->Clone(&copy);
         if (FAILED(hr)) return hr;
-        auto * wrapper = new(std::nothrow) ExternalDragStream(copy,stage_);
+        auto * wrapper = new(std::nothrow) ExternalDragStream(copy,stage_,index_);
         if (!wrapper) {copy->Release();return E_OUTOFMEMORY;}
         *out = wrapper;return S_OK;
     }
@@ -8324,13 +10015,24 @@ public:
                 if(FAILED(hr))*out={};return hr;
             }
             hr=stage_->Prepare();if(FAILED(hr))return hr;
-            const std::wstring path=stage_->directory+L"\\"+entry.archivePath;
-            if(!ArchivePreviewPathSafety::ValidPathComponents(fs::path(path),false,false))return E_ACCESSDENIED;
+            const std::wstring path=stage_->directory+kExternalDragFilesName+L"\\"+entry.archivePath;
+            hr = ArchivePreviewPathSafety::CheckPathComponents(fs::path(path),false,false,nullptr,true);
+            if (FAILED(hr)) {
+                Wh_Log(L"[AP external drag] phase=stream-validate index=%ld path_chars=%zu hr=0x%08lX",
+                    format->lindex,path.size(),static_cast<unsigned long>(hr));
+                return hr;
+            }
+            const std::wstring streamPath = path.size() >= MAX_PATH ?
+                ArchivePreviewPathSafety::ExtendedLocalPath(path) : path;
             IStream * file=nullptr;
-            hr=SHCreateStreamOnFileEx(path.c_str(),STGM_READ | STGM_SHARE_DENY_WRITE,
+            hr=SHCreateStreamOnFileEx(streamPath.c_str(),STGM_READ | STGM_SHARE_DENY_WRITE,
                 FILE_ATTRIBUTE_NORMAL,FALSE,nullptr,&file);
-            if(FAILED(hr))return hr;
-            auto * wrapper=new(std::nothrow)ExternalDragStream(file,stage_);
+            if (FAILED(hr)) {
+                Wh_Log(L"[AP external drag] phase=stream-open index=%ld path_chars=%zu hr=0x%08lX",
+                    format->lindex,path.size(),static_cast<unsigned long>(hr));
+                return hr;
+            }
+            auto * wrapper=new(std::nothrow)ExternalDragStream(file,stage_,format->lindex);
             if(!wrapper){file->Release();return E_OUTOFMEMORY;}
             out->tymed=TYMED_ISTREAM;out->pstm=wrapper;return S_OK;
         }
@@ -8483,12 +10185,21 @@ static LRESULT CALLBACK BrowserListSubclass(HWND hwnd,UINT msg,WPARAM wp,LPARAM 
                                              UINT_PTR, DWORD_PTR ref) {
     BrowserState * s = reinterpret_cast < BrowserState *  > (ref);
     if (!s) return DefSubclassProc(hwnd,msg,wp,lp);
-    if(msg==WM_HSCROLL)return 0;
-    if(msg==WM_SIZE || msg==LVM_SETITEMCOUNT){
-        const LRESULT result=DefSubclassProc(hwnd,msg,wp,lp);
-        ArchivePreviewColumns::FitViewport(hwnd);
-        BrowserRedrawHeader(s);
+    if (ArchivePreviewOptions::hideHorizontalScrollbar.load() &&
+        (msg == WM_HSCROLL || msg == WM_MOUSEHWHEEL)) return 0;
+    if (msg == WM_SIZE || msg == LVM_SETITEMCOUNT) {
+        const LRESULT result = DefSubclassProc(hwnd,msg,wp,lp);
+        BrowserLayoutColumns(s);
         InvalidateRect(hwnd,nullptr,FALSE);
+        return result;
+    }
+    if (msg == WM_HSCROLL || msg == WM_MOUSEHWHEEL || msg == LVM_SCROLL) {
+        const int offset = ArchivePreviewColumns::HorizontalOffset(hwnd);
+        const LRESULT result = DefSubclassProc(hwnd,msg,wp,lp);
+        if (offset != ArchivePreviewColumns::HorizontalOffset(hwnd)) {
+            BrowserRedrawHeader(s);
+            InvalidateRect(hwnd,nullptr,FALSE);
+        }
         return result;
     }
 
@@ -8625,8 +10336,16 @@ static LRESULT CALLBACK BrowserListSubclass(HWND hwnd,UINT msg,WPARAM wp,LPARAM 
         if ((GetKeyState(VK_CONTROL) & 0x8000) && (wp == 'C')) {
             BrowserTransfer(s,false);return 0;
         }
-        if (ArchivePreviewOptions::MatchesExtractSelectedShortcut(wp)) {
-            BrowserExtractSelected(s,true);
+        using Action = ArchivePreviewOptions::ExtractAction;
+        const auto action = ArchivePreviewOptions::ExtractShortcutForKey(wp);
+        if (action != Action::None) {
+            if (!ArchivePreviewOptions::IsRepeatedKey(lp) && !s->parked && !s->retireWhenIdle) {
+                if (action == Action::SelectedHere || action == Action::SelectedTo)
+                    BrowserExtractSelected(s,action == Action::SelectedHere);
+                else if (!s->dragging && s->parent && IsWindow(s->parent))
+                    PostMessageW(s->parent,ARCHIVE_BROWSER_EXTRACT_ARCHIVE,static_cast<WPARAM>(action),
+                        reinterpret_cast<LPARAM>(s->anchor));
+            }
             return 0;
         }
         if (wp == VK_BACK) {BrowserBack(s);return 0;}
@@ -8673,7 +10392,7 @@ static LRESULT CALLBACK BrowserHostProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp) 
                         SWP_NOZORDER | SWP_NOACTIVATE);
             }
             BrowserLayoutProgress(s);
-            BrowserLayoutColumns(s,w);
+            BrowserLayoutColumns(s);
             InvalidateRect(hwnd,nullptr,FALSE);
         }
         return 0;
@@ -8716,7 +10435,7 @@ static LRESULT CALLBACK BrowserHostProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp) 
         }
         break;
       case WM_PAINT: {
-        if (s) ++s->hostPaints;
+        if (s && ArchivePreviewDiagnostics::Enabled()) ++s->hostPaints;
         PAINTSTRUCT paint{};
         HDC dc = BeginPaint(hwnd, & paint);
         BrowserPaintHostContent(s,hwnd,dc);
@@ -8809,7 +10528,7 @@ static LRESULT CALLBACK BrowserHostProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp) 
         }
         break;
       case WM_ERASEBKGND: {
-        if (s) ++s->hostErases;
+        if (s && ArchivePreviewDiagnostics::Enabled()) ++s->hostErases;
         HDC dc = reinterpret_cast < HDC > (wp);
         if (dc) {RECT r{};GetClientRect(hwnd, & r);
             HBRUSH fill = s && s->paint.background ? s->paint.background :
@@ -8855,7 +10574,7 @@ static void BrowserRepairInputOrder(BrowserState * s) {
         static_cast<unsigned long long>(GetWindowLongPtrW(hit,GWL_STYLE)),
         static_cast<unsigned long long>(GetWindowLongPtrW(hit,GWL_EXSTYLE)),
         IsChild(hit,s->host)?1:0);
-    for (HWND node = s->host;node;) {
+    for (HWND node = ArchivePreviewDiagnostics::Enabled()?s->host:nullptr;node;) {
         wchar_t name[96]{};
         GetClassNameW(node,name,_countof(name));
         Wh_Log(L"[AP input2] chain node=%p class=%s parent=%p enabled=%d "
@@ -8937,42 +10656,68 @@ static bool PositionBrowser(BrowserState * s) {
     BrowserRepairInputOrder(s);
     return true;
 }
-static bool BrowserEnsureList(BrowserState * s) {
-    if (!s || !s->host || !IsWindow(s->host)) return false;
-    const int expected = static_cast<int>(s->entries.size());
-    const int actual = s->list && IsWindow(s->list)?ListView_GetItemCount(s->list):-1;
-    if (actual == expected && GetParent(s->list) == s->host &&
-        ListView_SetItemCountEx(s->list,expected,LVSICF_NOSCROLL | LVSICF_NOINVALIDATEALL) &&
-        ListView_GetItemCount(s->list) == expected) return true;
-
-    Wh_Log(L"ArchivePreview: rebuilding retained ListView (expected=%d actual=%d)",expected,actual);
-    BrowserSavedView view{};
-    auto & cache = BrowserCache(s->archive);
-    const std::wstring & viewFolder = s->hasRenderedFolder?s->renderedFolder:s->folder;
-    const auto saved = cache.views.find(viewFolder);
-    if (saved != cache.views.end()) view = saved->second;
-    const bool wasUpdating = s->updating;
-    s->updating = true;
-    if (s->list && IsWindow(s->list)) {
-        RemoveWindowSubclass(s->list,BrowserListSubclass,1);
-        DestroyWindow(s->list);
-    }
-    s->list = CreateWindowExW(0,WC_LISTVIEWW,L"",WS_CHILD | WS_VISIBLE | WS_VSCROLL |
+static HWND BrowserCreateListControl(HWND host,DWORD visibility = 0) {
+    return CreateWindowExW(0,WC_LISTVIEWW,L"",WS_CHILD | visibility | WS_VSCROLL |
         WS_TABSTOP | LVS_REPORT | LVS_NOCOLUMNHEADER | LVS_SHOWSELALWAYS |
-        LVS_SHAREIMAGELISTS | LVS_OWNERDATA,
-        0,0,1,1,s->host,nullptr,g_module,nullptr);
-    if (!s->list) {s->updating = wasUpdating;return false;}
-    BrowserApplyMetrics(s,true);
+        LVS_SHAREIMAGELISTS | LVS_OWNERDATA,0,0,1,1,host,nullptr,g_module,nullptr);
+}
+static bool BrowserConfigureList(BrowserState * s) {
     ListView_SetExtendedListViewStyleEx(s->list,
         LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_LABELTIP | LVS_EX_GRIDLINES,
         LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_LABELTIP);
-    BrowserRebuildColumns(s);
-    SetWindowSubclass(s->list,BrowserListSubclass,1,reinterpret_cast<DWORD_PTR>(s));
+    return BrowserRebuildColumns(s) &&
+        SetWindowSubclass(s->list,BrowserListSubclass,1,reinterpret_cast<DWORD_PTR>(s));
+}
+static bool BrowserEnsureList(BrowserState * s,bool restoreView) {
+    if (!s || !s->host || !IsWindow(s->host)) return false;
+    if (restoreView && BrowserListHasRows(s)) return true;
+    const int expected = static_cast<int>(s->entries.size());
+    const HWND previous = s->list && IsWindow(s->list) && GetParent(s->list) == s->host ?
+        s->list : nullptr;
+    Wh_Log(L"[AP list] rebuild-begin instance=%llu expected=%d actual=%d",
+        static_cast<unsigned long long>(s->instanceId),expected,
+        previous?ListView_GetItemCount(previous):-1);
+    const HWND replacement = BrowserCreateListControl(s->host);
+    if (!replacement) {
+        Wh_Log(L"[AP list] rebuild-create-failed win32=%lu",GetLastError());
+        return false;
+    }
+    const bool hadFocus = previous && GetFocus() == previous;
+    const bool wasUpdating = s->updating;
+    auto oldColumns = std::move(s->visibleColumns);
+    const int oldLanguage = s->appliedLanguage;
+    s->updating = true;
+    s->list = replacement;
+    if (s->rowFont)
+        SendMessageW(replacement,WM_SETFONT,reinterpret_cast<WPARAM>(s->rowFont),FALSE);
+    if (s->rowSpacingIcons) ListView_SetImageList(replacement,s->rowSpacingIcons,LVSIL_SMALL);
+    if (!BrowserConfigureList(s) || !ListView_SetItemCountEx(replacement,expected,LVSICF_NOSCROLL) ||
+        !BrowserListHasRows(s)) {
+        s->list = previous;
+        s->visibleColumns = std::move(oldColumns);
+        s->appliedLanguage = oldLanguage;
+        s->updating = wasUpdating;
+        DestroyWindow(replacement);
+        Wh_Log(L"[AP list] rebuild-setup-failed expected=%d",expected);
+        return false;
+    }
     BrowserApplyTheme(s);
-    SendMessageW(s->list,WM_SETREDRAW,FALSE,0);
-    const bool applied = ListView_SetItemCountEx(s->list,expected,LVSICF_NOSCROLL) != 0 &&
-        ListView_GetItemCount(s->list) == expected;
-    if (applied) BrowserRestoreView(s,view);
+    BrowserLayoutProgress(s);
+    BrowserLayoutColumns(s);
+    bool restored = false;
+    if (restoreView && s->hasRenderedFolder && !s->partialModelPreview) {
+        const auto & views = BrowserCache(s->archive).views;
+        if (const auto saved = views.find(s->renderedFolder); saved != views.end()) {
+            BrowserRestoreView(s,saved->second);
+            restored = true;
+        }
+    }
+    if (previous) {
+        RemoveWindowSubclass(previous,BrowserListSubclass,1);
+        DestroyWindow(previous);
+    }
+    ShowWindow(replacement,SW_SHOWNA);
+    if (hadFocus) SetFocus(replacement);
     s->hoverIndex = -1;
     s->pressIndex = -1;
     s->pressSelectionRows.clear();
@@ -8981,16 +10726,15 @@ static bool BrowserEnsureList(BrowserState * s) {
     s->pressSelectionOversized = false;
     s->pressWasSelected = false;
     s->updating = wasUpdating;
-    SendMessageW(s->list,WM_SETREDRAW,TRUE,0);
     InvalidateRect(s->list,nullptr,FALSE);
     BrowserScheduleListSettle(s);
-    Wh_Log(L"ArchivePreview: retained ListView rebuild result=%d rows=%d",applied?1:0,
-        ListView_GetItemCount(s->list));
-    return applied;
+    Wh_Log(L"[AP list] rebuild-complete rows=%d restored_view=%d",expected,restored?1:0);
+    return true;
 }
 static bool CreateBrowser(BrowserState * s) {
     if (!s || !ValidBrowserAnchor(s->anchor)) return false;
-    const ULONGLONG createdAt = GetTickCount64();
+    const bool diagnostics = ArchivePreviewDiagnostics::Enabled();
+    const ULONGLONG createdAt = diagnostics?GetTickCount64():0;
     s->parent = GetParent(s->anchor);
     // Create the actual ListView *in the medium-integrity broker*.
     // It becomes a true child of the preview window using SetParent, not a
@@ -9019,10 +10763,7 @@ static bool CreateBrowser(BrowserState * s) {
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
         0,0,1,1,host,nullptr,g_module,s);
     if (!s->header) {DestroyWindow(host);s->host = nullptr;return false;}
-    s->list = CreateWindowExW(0,WC_LISTVIEWW,L"",WS_CHILD | WS_VISIBLE | WS_VSCROLL |
-        WS_TABSTOP | LVS_REPORT | LVS_NOCOLUMNHEADER | LVS_SHOWSELALWAYS |
-        LVS_SHAREIMAGELISTS | LVS_OWNERDATA,
-        0,0,1,1,host,nullptr,g_module,nullptr);
+    s->list = BrowserCreateListControl(host,WS_VISIBLE);
     if (!s->list) {DestroyWindow(host);s->host = nullptr;return false;}
     s->footer = CreateWindowExW(WS_EX_NOPARENTNOTIFY,kBrowserFooterClass,L"",
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,0,0,1,1,host,nullptr,
@@ -9039,12 +10780,9 @@ static bool CreateBrowser(BrowserState * s) {
     // Follow the effective DPI and Windows message font, including during
     // per-monitor DPI transitions. The system small-icon size sets the row scale.
     BrowserApplyMetrics(s, true);
-    ListView_SetExtendedListViewStyleEx(s->list,
-        LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_LABELTIP | LVS_EX_GRIDLINES,
-        LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_LABELTIP);
-    // A plain header: no native grid lines between Name / Date modified / Type / Size.
-    BrowserRebuildColumns(s);
-    SetWindowSubclass(s->list,BrowserListSubclass,1,reinterpret_cast < DWORD_PTR > (s));
+    if (!BrowserConfigureList(s)) {
+        DestroyWindow(host);s->host = nullptr;s->list = nullptr;return false;
+    }
     BrowserApplyTheme(s);
     if (FAILED(BrowserRefresh(s))) {
         RemoveWindowSubclass(s->list,BrowserListSubclass,1);
@@ -9063,14 +10801,9 @@ static bool CreateBrowser(BrowserState * s) {
     // Prevhost may report a light host color after Extract Here in dark mode.
     PostMessageW(s->parent,ARCHIVE_BROWSER_READY,s->dark?1:0,0);
     BrowserNotifyDepth(s);
-    DWORD pid = 0;GetWindowThreadProcessId(s->list, & pid);
-    wchar_t line[190]{};
-    swprintf_s(line,L"Broker-owned ListView attached: pid=%lu list=%p rows=%zu",
-        pid,s->list,s->entries.size());
-    Wh_Log(L"%s", line);
-    wchar_t duration[120]{};
-    swprintf_s(duration,L"Broker first list ready in %llu ms",GetTickCount64() - createdAt);
-    Wh_Log(L"%s", duration);
+    if (diagnostics)
+        Wh_Log(L"[AP list] attached pid=%lu list=%p rows=%zu ready_ms=%llu dpi=%u",
+            GetCurrentProcessId(),s->list,s->entries.size(),GetTickCount64() - createdAt,s->currentDpi);
     return true;
 }
 static void BrowserAdjustProgressPoll(BrowserState * s,bool active) {
@@ -9128,12 +10861,24 @@ static LRESULT CALLBACK BrowserHostWindowProc(HWND hwnd,UINT msg,WPARAM wp,LPARA
     auto * s = reinterpret_cast < BrowserState *  > (GetWindowLongPtrW(hwnd,GWLP_USERDATA));
     if (msg == WM_TIMER && wp == kBrowserListSettleTimer && s) {
         KillTimer(hwnd,kBrowserListSettleTimer);
-        if (!s->parked && !s->retireWhenIdle && !s->updating &&
-            s->list && IsWindowVisible(s->list))
-            RedrawWindow(s->list,nullptr,nullptr,
-                RDW_INVALIDATE | RDW_NOERASE | RDW_UPDATENOW);
+        if (!s->parked && !s->retireWhenIdle && !s->updating && !s->dragging) {
+            if (!BrowserEnsureList(s)) {
+                Wh_Log(L"[AP list] settle failed; restoring Shell fallback");
+                s->retireWhenIdle = true;
+                ShowWindow(s->host,SW_HIDE);
+                if (s->parent) PostMessageW(s->parent,ARCHIVE_BROWSER_FAILED,0,0);
+                if (HWND manager = g_gripManager.load())
+                    PostMessageW(manager,WM_BROWSER_REAP,reinterpret_cast<WPARAM>(s->anchor),1);
+                return 0;
+            }
+            if (IsWindowVisible(s->list))
+                RedrawWindow(s->list,nullptr,nullptr,
+                    RDW_INVALIDATE | RDW_NOERASE | RDW_UPDATENOW);
+            BrowserNotifySelectionCount(s);
+        }
         BrowserRepairInputOrder(s);
         BrowserDiagnosticSnapshot(s,L"settled");
+        ArchivePreviewIcons::LogStats(L"preview");
         return 0;
     }
     if (msg == WM_TIMER && wp == kBrowserProgressTimer && s) {
@@ -9184,7 +10929,7 @@ static LRESULT CALLBACK BrowserHostWindowProc(HWND hwnd,UINT msg,WPARAM wp,LPARA
     }
     if (msg == WM_TIMER && wp == kBrowserHeaderRepairTimer && s) {
         KillTimer(hwnd,kBrowserHeaderRepairTimer);
-        ++s->repairs;
+        if (ArchivePreviewDiagnostics::Enabled()) ++s->repairs;
         // Immediate-only refresh can skip the required header paint.
         // Request a new frame from both independent opaque child surfaces.
         if (s->header && IsWindowVisible(s->header))
@@ -9211,11 +10956,20 @@ static LRESULT CALLBACK BrowserHostWindowProc(HWND hwnd,UINT msg,WPARAM wp,LPARA
             return 0;
         }
         if (s->dragging) return 0;
+        if (!s->updating && !BrowserListHasRows(s)) BrowserScheduleListSettle(s);
         if (!ValidBrowserAnchor(s->anchor) || !PositionBrowser(s)) {
             PostMessageW(g_gripManager.load(),WM_BROWSER_REAP,
                 reinterpret_cast < WPARAM > (s->anchor),0);
         } else {
             const ULONGLONG now = GetTickCount64();
+            static ULONGLONG nextColumnPreferencesCheck = 0;
+            if (now >= nextColumnPreferencesCheck) {
+                nextColumnPreferencesCheck = now + 2000;
+                const auto changed = ArchivePreviewColumns::Load();
+                if (changed.widths || changed.visibility)
+                    if (HWND manager = g_gripManager.load())
+                        PostMessageW(manager,WM_BROWSER_COLUMN_PREFERENCES_CHANGED,changed.visibility,0);
+            }
             if (s->selectionGuardDeadline && now >= s->selectionGuardNext) {
                 s->selectionGuardNext = now + 380;
                 if (now > s->selectionGuardDeadline) {
@@ -9380,7 +11134,9 @@ static bool BrowserAdopt(BrowserState * s,HWND newAnchor,const std::wstring & ne
     bool inflightStillRunning = false;
     if (sameArchive && s->modelCancelled) {
         for (const auto & active:g_browserModelInflight)
-            if (active.ticket == s->modelCancelled) {
+            if (active.ticket == s->modelCancelled &&
+                active.metadataMask == ArchivePreviewOptions::MetadataMask(bytes) &&
+                !active.ticket->load(std::memory_order_acquire)) {
                 inflightStillRunning = true; break;
             }
     }
@@ -9454,9 +11210,9 @@ static bool BrowserAdopt(BrowserState * s,HWND newAnchor,const std::wstring & ne
     const UINT dpi = GetDpiForWindow(s->host);
     if (dpi && dpi != s->currentDpi) BrowserApplyMetrics(s,true);
     std::vector < BrowserColumnKind > requested{BrowserColumnKind::Name};
-    if (ArchivePreviewOptions::showDate.load()) requested.push_back(BrowserColumnKind::DateModified);
-    if (ArchivePreviewOptions::showType.load()) requested.push_back(BrowserColumnKind::Type);
-    if (ArchivePreviewOptions::showSize.load()) requested.push_back(BrowserColumnKind::Size);
+    if (ArchivePreviewOptions::ShowColumn(1)) requested.push_back(BrowserColumnKind::DateModified);
+    if (ArchivePreviewOptions::ShowColumn(2)) requested.push_back(BrowserColumnKind::Type);
+    if (ArchivePreviewOptions::ShowColumn(3)) requested.push_back(BrowserColumnKind::Size);
     if (requested != s->visibleColumns || s->appliedLanguage != ArchivePreviewText::Language())
         BrowserRebuildColumns(s);
     BrowserApplyTheme(s);
@@ -9541,6 +11297,8 @@ static void BrowserRetireOverlappingPreviews(HWND newAnchor) {
     }
 }
 static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp) {
+    // The UI thread destroys this internal window after reclaiming its queue.
+    if (msg == WM_CLOSE) return 0;
     if (msg == WM_TIMER && wp == kBrowserParkSweepTimer) {
         BrowserSweepParked();
         size_t parkedCount = 0;
@@ -9559,9 +11317,21 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
         if (!parkedCount) KillTimer(hwnd,kBrowserParkSweepTimer);
         return 0;
     }
+    if (msg == WM_BROWSER_COLUMN_PREFERENCES_CHANGED) {
+        if (wp) BrowserCancelOutdatedMetadata();
+        for (auto & [anchor,browser] : g_browsers) {
+            if (browser->parked || !browser->list || !IsWindow(browser->list)) continue;
+            if (wp) {
+                BrowserRebuildColumns(browser.get());
+                BrowserRefresh(browser.get());
+            } else BrowserLayoutColumns(browser.get());
+        }
+        return 0;
+    }
     if (msg == WM_BROWSER_SETTINGS_CHANGED) {
         // Runs on the Broker UI thread: never manipulate the ListView from
         // Windhawk's settings callback, which can be another Explorer thread.
+        BrowserCancelOutdatedMetadata();
         for(auto & [anchor,browser]:g_browsers) {
             BrowserState * state = browser.get();
             if (state->parked) continue;
@@ -9580,19 +11350,21 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
     if (msg == WM_BROWSER_MODEL_PREVIEW) {
         std::unique_ptr < BrowserModelPreview > preview(
             reinterpret_cast < BrowserModelPreview *  > (lp));
-        if (!preview) return 0;
+        if (!preview || preview->ticket->load(std::memory_order_acquire) ||
+            preview->metadataMask != ArchivePreviewOptions::MetadataMask(preview->archiveBytes)) return 0;
         // Follow the subscribed work ticket, not an obsolete Explorer HWND.
         // A transient Unload/reattach does not invalidate the actual worker.
         BrowserState * s = BrowserFindModelSubscriber(preview->ticket,
             preview->archive,preview->folder);
-        if (!s || (s->hasRenderedFolder && !s->partialModelPreview) ||
-            !s->list || !IsWindow(s->list)) return 0;
+        if (!s || (s->hasRenderedFolder && !s->partialModelPreview)) return 0;
         s->updating = true;
         SendMessageW(s->list,WM_SETREDRAW,FALSE,0);
-        s->entries = std::move(preview->rows);
-        ListView_SetItemCountEx(s->list,0,LVSICF_NOSCROLL);
-        const bool applied = ListView_SetItemCountEx(s->list,
-            static_cast < int > (s->entries.size()),LVSICF_NOSCROLL) != 0;
+        s->entries.swap(preview->rows);
+        const bool applied = BrowserApplyListRows(s);
+        if (!applied) {
+            s->entries.swap(preview->rows);
+            ListView_SetItemCountEx(s->list,static_cast<int>(s->entries.size()),LVSICF_NOSCROLL);
+        }
         s->updating = false;
         SendMessageW(s->list,WM_SETREDRAW,TRUE,0);
         if (applied) {
@@ -9604,17 +11376,16 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
             BrowserNotifyDepth(s);
             BrowserRedrawHeader(s,true);
             RedrawWindow(s->list,nullptr,nullptr,RDW_INVALIDATE | RDW_NOERASE);
-            BrowserScheduleListSettle(s);
         }
+        BrowserScheduleListSettle(s);
         return 0;
     }
     if (msg == WM_BROWSER_MODEL_READY) {
         std::unique_ptr < BrowserModelJob > job(reinterpret_cast < BrowserModelJob *  > (lp));
         if (!job) return 0;
         BrowserForgetInflight(job->cancelled);
-        const unsigned metadataMask=ArchivePreviewOptions::MetadataMask(job->archiveBytes);
-        if (job->collectDates != ((metadataMask & 1u)!=0) ||
-            job->collectSizes != ((metadataMask & 2u)!=0)) {
+        auto & cache = BrowserCache(job->archive);
+        if (job->cancelled->load(std::memory_order_acquire) || job->metadataMask != cache.metadataMask) {
             for (auto & [key,browser]:g_browsers) {
                 if (browser->modelCancelled != job->cancelled) continue;
                 browser->modelPending = false;browser->modelPendingFolder.clear();
@@ -9629,15 +11400,10 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
             // The user selected a different file while COM was running.
             // Keep a small fully validated model so selecting the old
             // archive again does not scan it for a second time.
-            FILETIME stamp{};
-            ULONGLONG bytes{};
-            ArchiveFileIdentity identity{};
             if (SUCCEEDED(job->result) && !job->rows.empty() &&
-                job->rows.size() <= 12000 &&
-                GetArchiveSignature(job->archive,stamp,bytes, & identity) &&
-                identity == job->archiveIdentity && bytes == job->archiveBytes &&
-                CompareFileTime( & stamp, & job->modified) == 0) {
-                auto & cache = BrowserCache(job->archive);
+                job->rows.size() <= 12000 && cache.signatureValid &&
+                cache.identity == job->archiveIdentity && cache.bytes == job->archiveBytes &&
+                CompareFileTime(&cache.modified,&job->modified) == 0) {
                 if (cache.folders.size() >= 32 &&
                     cache.folders.find(job->folder) == cache.folders.end()) {
                     auto oldest = cache.folderTouched.end();
@@ -9723,12 +11489,8 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
             }
             return 0;
         }
-        FILETIME modified{};
-        ULONGLONG bytes = 0;
-        ArchiveFileIdentity identity{};
-        if (!GetArchiveSignature(s->archive,modified,bytes, & identity) ||
-            identity != job->archiveIdentity ||
-            CompareFileTime( & modified, & job->modified) != 0 || bytes != job->archiveBytes) {
+        if (!cache.signatureValid || cache.identity != job->archiveIdentity ||
+            CompareFileTime(&cache.modified,&job->modified) != 0 || cache.bytes != job->archiveBytes) {
             // Source changed while the worker was enumerating; restart.
             s->partialModelPreview = false;
             s->hasRenderedFolder = false;
@@ -9747,7 +11509,6 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
             }
             return 0;
         }
-        auto & cache = BrowserCache(s->archive);
         if (cache.folders.size() >= 32) {
             auto oldest = cache.folderTouched.end();
             for (auto ci = cache.folderTouched.begin();ci != cache.folderTouched.end();++ci)
@@ -9820,9 +11581,9 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
                 !InlineIsEqualGUID(s->pendingExtract,result->requestId)) continue;
             s->pendingExtract = GUID{};
             if (SUCCEEDED(result->outcome)) s->extractStatus =
-                result->command == ARCHIVE_BROKER_OPEN_FILE ? L"File opened." : L"Extraction completed.";
+                result->command == ARCHIVE_BROKER_OPEN_FILE ? L"File opened." : ArchivePreviewText::Get(ArchivePreviewText::Id::ExtractionComplete);
             else if (result->outcome == HRESULT_FROM_WIN32(ERROR_CANCELLED))
-                s->extractStatus = result->command == ARCHIVE_BROKER_OPEN_FILE ? L"Open cancelled." : L"Extraction cancelled.";
+                s->extractStatus = result->command == ARCHIVE_BROKER_OPEN_FILE ? L"Open cancelled." : ArchivePreviewText::Get(ArchivePreviewText::Id::ExtractionCancelled);
             else if (result->outcome == HRESULT_FROM_WIN32(ERROR_PARTIAL_COPY))
                 s->extractStatus = L"Extraction incomplete: check destination files.";
             else {
@@ -9854,13 +11615,10 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
                 // The host has its own delayed repair timer. Do not also
                 // post CHROME_REFRESH here: that forced two cross-process
                 // redraws while Explorer was updating the destination folder.
-                wchar_t themeLine[180]{};
-                swprintf_s(themeLine,
-                    L"ArchivePreview: chrome post-extract: dark=%d highContrast=%d header=%d footer=%d",
+                Wh_Log(L"ArchivePreview: chrome post-extract: dark=%d highContrast=%d header=%d footer=%d",
                     browser->dark?1:0,browser->highContrast?1:0,
                     browser->header && IsWindowVisible(browser->header)?1:0,
                     browser->footer && IsWindowVisible(browser->footer)?1:0);
-                Wh_Log(L"%s", themeLine);
                 if (browser->host && IsWindow(browser->host)) {
                     // Explorer can erase this cross-process chrome after
                     // our immediate paint; issue a coalesced delayed repair.
@@ -10036,7 +11794,29 @@ static LRESULT CALLBACK BrowserManagerProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM l
     }
     return DefWindowProcW(hwnd,msg,wp,lp);
 }
+static void RunBrokerMessageLoop() {
+    while (!CancelledForCurrentOperation()) {
+        const DWORD wake = MsgWaitForMultipleObjectsEx(1,&g_brokerStopEvent,INFINITE,
+            QS_ALLINPUT,MWMO_INPUTAVAILABLE);
+        if (wake != WAIT_OBJECT_0 + 1) return;
+        MSG message{};
+        while (!CancelledForCurrentOperation() &&
+               PeekMessageW(&message,nullptr,0,0,PM_REMOVE)) {
+            if (message.message == WM_QUIT) return;
+            TranslateMessage(&message);DispatchMessageW(&message);
+        }
+    }
+}
+template<typename T>
+static void DiscardBrowserPayloads(HWND manager,UINT message) {
+    MSG stranded{};
+    while (PeekMessageW(&stranded,manager,message,message,PM_REMOVE)) {
+        if (stranded.message == message)
+            delete reinterpret_cast<T*>(stranded.lParam);
+    }
+}
 static DWORD WINAPI GripUiThread(LPVOID) {
+    if (CancelledForCurrentOperation()) return 0;
     HRESULT init = OleInitialize(nullptr);
     if (FAILED(init)) return 1;
     INITCOMMONCONTROLSEX cc{};cc.dwSize = sizeof(cc);cc.dwICC = ICC_LISTVIEW_CLASSES;
@@ -10076,26 +11856,22 @@ static DWORD WINAPI GripUiThread(LPVOID) {
     g_browserParkHost = CreateWindowExW(WS_EX_TOOLWINDOW,L"STATIC",L"",
         WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         - 32000, - 32000,1,1,nullptr,nullptr,GetModuleHandleW(nullptr),nullptr);
-    g_gripManager.store(manager);g_gripReady.store(manager != nullptr);
-    Wh_Log(L"%s", std::wstring(manager?L"Broker-owned ListView manager ready":L"Broker-owned ListView manager failed").c_str());
-    MSG message{};
-    while (manager && GetMessageW( & message,nullptr,0,0) > 0) {
-        TranslateMessage( & message);DispatchMessageW( & message);
+    if (manager && !CancelledForCurrentOperation()) {
+        g_gripManager.store(manager,std::memory_order_release);
+        g_gripReady.store(true,std::memory_order_release);
     }
+    Wh_Log(L"%s", std::wstring(manager?L"Broker-owned ListView manager ready":L"Broker-owned ListView manager failed").c_str());
+    if (manager) RunBrokerMessageLoop();
     {
-        std::lock_guard < std::mutex > postLock(g_browserModelPostMutex);
+        std::lock_guard<std::mutex> lock(g_browserPostMutex);
         g_gripManager.store(nullptr,std::memory_order_release);
-        // PostMessageW transfers ownership of raw result pointers. Stop
-        // producers, then reclaim messages that are still queued after the
-        // message loop exits. A blocked worker will delete its result itself
-        // when it eventually returns and sees the null manager.
-        MSG stranded{};
-        while (manager && PeekMessageW( & stranded,manager,
-               WM_BROWSER_MODEL_READY,WM_BROWSER_MODEL_READY,PM_REMOVE))
-            delete reinterpret_cast < BrowserModelJob *  > (stranded.lParam);
-        while (manager && PeekMessageW( & stranded,manager,
-               WM_BROWSER_MODEL_PREVIEW,WM_BROWSER_MODEL_PREVIEW,PM_REMOVE))
-            delete reinterpret_cast < BrowserModelPreview *  > (stranded.lParam);
+        g_gripReady.store(false,std::memory_order_release);
+    }
+    if (manager) {
+        DiscardBrowserPayloads<BrowserModelJob>(manager,WM_BROWSER_MODEL_READY);
+        DiscardBrowserPayloads<BrowserModelPreview>(manager,WM_BROWSER_MODEL_PREVIEW);
+        DiscardBrowserPayloads<Request>(manager,WM_BROWSER_CHANGE);
+        DiscardBrowserPayloads<BrowserLocalExtractResult>(manager,WM_BROWSER_LOCAL_EXTRACT_DONE);
     }
     // No new browser may subscribe after manager shutdown. The worker's own
     // token remains valid until it returns; this map holds no thread handles.
@@ -10120,8 +11896,6 @@ static DWORD WINAPI GripUiThread(LPVOID) {
     UnregisterClassW(kBrowserHeaderClass,instance);
     UnregisterClassW(kBrowserFooterClass,instance);
     UnregisterClassW(kBrowserHostClass,instance);
-    g_gripManager.store(nullptr);
-    g_gripReady.store(false);
     while (g_externalDragInterfaces.load(std::memory_order_acquire)) {
         MSG pending{};
         while (PeekMessageW(&pending,nullptr,0,0,PM_REMOVE)) {
@@ -10134,26 +11908,14 @@ static DWORD WINAPI GripUiThread(LPVOID) {
     OleUninitialize();return 0;
 }
 static HRESULT DispatchGripUpdate(const Request & req) {
-    HWND manager = g_gripManager.load();
-    if (!manager || !IsWindow(manager)) {
-        Wh_Log(L"Browser command rejected: manager not ready");
-        return HRESULT_FROM_WIN32(ERROR_NOT_READY);
-    }
-    Request * copy = new (std::nothrow) Request(req);
+    std::unique_ptr<Request> copy(new(std::nothrow) Request(req));
     if (!copy) return E_OUTOFMEMORY;
-    if (!PostMessageW(manager,WM_BROWSER_CHANGE,req.command,
-                      reinterpret_cast < LPARAM > (copy))) {
-        const HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
-        delete copy;
-        return hr;
-    }
-    return S_OK;
+    return PostBrowserPayload(WM_BROWSER_CHANGE,req.command,std::move(copy));
 }
 
 static void Report(const Request & req,HRESULT hr) {
-    wchar_t code[48]{};
-    swprintf_s(code,L"0x%08lX",static_cast < unsigned long > (hr));
-    const std::wstring operation =
+    if (!ArchivePreviewDiagnostics::Enabled()) return;
+    const wchar_t * operation =
         req.command == ARCHIVE_BROKER_COPY_SELECTION ? L"Copy selection" :
         req.command == ARCHIVE_BROKER_EXTRACT_SELECTED_TO ? L"Extract selected to" :
         req.command == ARCHIVE_BROKER_EXTRACT_SELECTED_HERE ? L"Extract selected here" :
@@ -10161,7 +11923,8 @@ static void Report(const Request & req,HRESULT hr) {
         req.command == ARCHIVE_BROKER_EXTRACT_TO ? L"Extract to" : L"Extract here";
     wchar_t guidText[48]{};
     StringFromGUID2(req.requestId,guidText,_countof(guidText));
-    Wh_Log(L"%s", std::wstring(operation + L" " + code + L" request=" + guidText + L" : " + req.archive).c_str());
+    Wh_Log(L"[AP broker] operation=%s hr=0x%08lX request=%s items=%zu",
+        operation,static_cast<unsigned long>(hr),guidText,req.items.size());
     // Do not display MessageBox here. Process() runs on a worker apartment:
     // a modal dialog stalls the queue and suppresses the completion result.
     // The handler reads the final HRESULT by request GUID.
@@ -10190,11 +11953,9 @@ static HRESULT Process(const Request & req) {
         req.command == ARCHIVE_BROKER_OPEN_FILE) {
         const GUID zero{};
         if (!InlineIsEqualGUID(req.requestId,zero)) {
-            const HWND manager = g_gripManager.load();
-            auto * result = new(std::nothrow) BrowserLocalExtractResult{req.requestId,hr,req.command};
-            if (result && (!manager || !PostMessageW(manager,
-                    WM_BROWSER_LOCAL_EXTRACT_DONE,0,reinterpret_cast < LPARAM > (result))))
-                delete result;
+            std::unique_ptr<BrowserLocalExtractResult> result(
+                new(std::nothrow) BrowserLocalExtractResult{req.requestId,hr,req.command});
+            if (result) PostBrowserPayload(WM_BROWSER_LOCAL_EXTRACT_DONE,0,std::move(result));
         }
     }
     if (req.command == ARCHIVE_BROKER_EXTRACT_HERE ||
@@ -10308,16 +12069,17 @@ static std::wstring BrokerRequestKey(const GUID & id) {
     return StringFromGUID2(id,buffer,_countof(buffer)) ? buffer : L"";
 }
 
-static void NativeProgressRecord(const GUID & id,DWORD stage,
+static bool NativeProgressRecord(const GUID & id,DWORD stage,
                                  bool known,DWORD percent,bool begin,
                                  bool updateEstimate) {
     const std::wstring key = BrokerRequestKey(id);
-    if (key.empty()) return;
+    if (key.empty()) return stage != ARCHIVE_PROGRESS_EXTERNAL || !CancelledForCurrentOperation();
     const ULONGLONG now = GetTickCount64();
     std::lock_guard < std::mutex > lock(g_workMutex);
+    if (stage == ARCHIVE_PROGRESS_EXTERNAL && CancelledForCurrentOperation()) return false;
     const auto it = g_operationRecords.find(key);
     if (it == g_operationRecords.end() || !it->second.isExtraction ||
-        it->second.phase != ARCHIVE_OPERATION_RUNNING) return;
+        it->second.phase != ARCHIVE_OPERATION_RUNNING) return true;
     auto & record = it->second;
     if (begin && !record.workStarted) record.workStarted = now;
     if (stage != ARCHIVE_PROGRESS_NONE) record.progressStage = stage;
@@ -10332,6 +12094,7 @@ static void NativeProgressRecord(const GUID & id,DWORD stage,
         t_workerProgressStage->store(record.progressStage,std::memory_order_release);
         t_workerHeartbeat->store(now,std::memory_order_release);
     }
+    return true;
 }
 
 static ArchiveBrokerOperationStatusReply QueryOperationStatus(const GUID & id,DWORD callerPid) {
@@ -10902,19 +12665,24 @@ static bool VerifyBrowserWindowOwner(HANDLE pipe,const Request & request) {
         request.command != ARCHIVE_BROKER_BROWSER_BACK &&
         request.command != ARCHIVE_BROKER_BROWSER_EXTRACT_SELECTED_TO &&
         request.command != ARCHIVE_BROKER_BROWSER_EXTRACT_SELECTED_HERE &&
-        request.command != ARCHIVE_BROKER_RESOLVE_SELECTED_PATH) return true;
-    if (request.items.size() != 1) return false;
-    wchar_t * finish = nullptr;
-    const unsigned long long number = wcstoull(request.items[0].c_str(), & finish,10);
-    if (!number || !finish || * finish) return false;
-    HWND anchor = reinterpret_cast < HWND > (static_cast < uintptr_t > (number));
+        request.command != ARCHIVE_BROKER_RESOLVE_SELECTED_PATH &&
+        request.command != ARCHIVE_BROKER_SAVE_COLUMN) return true;
+    UINT_PTR number = request.columnChange.previewWindow;
+    if (request.command != ARCHIVE_BROKER_SAVE_COLUMN) {
+        if (request.items.size() != 1) return false;
+        wchar_t * finish = nullptr;
+        number = static_cast<UINT_PTR>(wcstoull(request.items[0].c_str(),&finish,10));
+        if (!number || !finish || *finish) return false;
+    }
+    HWND anchor = reinterpret_cast<HWND>(number);
     ULONG peerPid = 0;
     DWORD windowPid = 0;
     if (!GetNamedPipeClientProcessId(pipe, & peerPid) || !peerPid) return false;
     if (!IsWindow(anchor)) return request.command == ARCHIVE_BROKER_GRIP_CLEAR;
     GetWindowThreadProcessId(anchor, & windowPid);
     if(windowPid != peerPid)return false;
-    if(request.command == ARCHIVE_BROKER_RESOLVE_SELECTED_PATH) {
+    if (request.command == ARCHIVE_BROKER_RESOLVE_SELECTED_PATH ||
+        request.command == ARCHIVE_BROKER_SAVE_COLUMN) {
         wchar_t klass[128]{};
         GetClassNameW(anchor,klass,_countof(klass));
         return wcscmp(klass,ArchivePreviewHost::kWindowClass) == 0 &&
@@ -10945,7 +12713,8 @@ static bool IsAuthorizedArchiveOperation(HANDLE pipe,const Request & request){
        request.command == ARCHIVE_BROKER_GRIP_CLEAR ||
        request.command == ARCHIVE_BROKER_PING ||
        request.command == ARCHIVE_BROKER_QUERY_STATUS ||
-       request.command == ARCHIVE_BROKER_RESOLVE_SELECTED_PATH)return true;
+       request.command == ARCHIVE_BROKER_RESOLVE_SELECTED_PATH ||
+       request.command == ARCHIVE_BROKER_SAVE_COLUMN)return true;
     ULONG clientPid = 0;
     if(!GetNamedPipeClientProcessId(pipe, & clientPid) || !clientPid)return false;
     std::lock_guard < std::mutex > lock(g_authorizedMutex);
@@ -11041,6 +12810,15 @@ static DWORD WINAPI ServeOnePipeClient(LPVOID state) {
                     replyWritten = SUCCEEDED(ArchiveWriteAll(pipe,resolved.data(),
                         chars * sizeof(wchar_t)));
             }
+            if (requestValid && request.command == ARCHIVE_BROKER_SAVE_COLUMN) {
+                const auto & change = request.columnChange.change;
+                hr = ArchivePreviewColumns::Save(change) ? S_OK : E_FAIL;
+                if (SUCCEEDED(hr)) {
+                    if (HWND manager = g_gripManager.load())
+                        PostMessageW(manager,WM_BROWSER_COLUMN_PREFERENCES_CHANGED,change.visibility,0);
+                }
+                replyWritten = SUCCEEDED(ArchiveWriteAll(pipe,&hr,sizeof(hr)));
+            }
             if (requestValid && request.command == ARCHIVE_BROKER_PING) {
                 const DWORD alive = ARCHIVE_BROKER_MAGIC;
                 replyWritten = SUCCEEDED(ArchiveWriteAll(pipe, & alive,sizeof(alive)));
@@ -11108,7 +12886,8 @@ static DWORD WINAPI ServeOnePipeClient(LPVOID state) {
                        request.command != ARCHIVE_BROKER_PING &&
                        request.command != ARCHIVE_BROKER_QUERY_STATUS &&
                        request.command != ARCHIVE_BROKER_CANCEL_OPERATION &&
-                       request.command != ARCHIVE_BROKER_RESOLVE_SELECTED_PATH) {
+                       request.command != ARCHIVE_BROKER_RESOLVE_SELECTED_PATH &&
+                       request.command != ARCHIVE_BROKER_SAVE_COLUMN) {
                 // Return queue admission status before the worker runs.
                 // Completion (including failures) remains reported by Report().
                 ULONG clientPid = 0;
@@ -11149,7 +12928,18 @@ static DWORD WINAPI ServeOnePipeClient(LPVOID state) {
 
 static std::atomic < bool > g_stopBroker{false};
 static std::atomic < bool > g_serviceReady{false};
-static HANDLE g_gripWorkerThread = nullptr;
+static void JoinBrokerThread(HANDLE thread,PCWSTR name) {
+    for (;;) {
+        const DWORD result = WaitForSingleObject(thread,30000);
+        if (result == WAIT_OBJECT_0) return;
+        if (result == WAIT_TIMEOUT) {
+            Wh_Log(L"Shutdown waiting for %s",name);
+        } else {
+            Wh_Log(L"Shutdown wait failed for %s (Win32=%lu)",name,GetLastError());
+            Sleep(100);
+        }
+    }
+}
 static int Serve() {
     if(g_stopBroker.load(std::memory_order_acquire))return 0;
     HANDLE token = nullptr;
@@ -11173,17 +12963,19 @@ static int Serve() {
     attrs.lpSecurityDescriptor = descriptor;
     Wh_Log(L"Broker started: normal-user transfer mode");
     if (!StartWorkQueue()) { LocalFree(descriptor); Wh_Log(L"Worker queue startup failed"); return 8; }
-    g_gripWorkerThread = CreateThread(nullptr,0,GripUiThread,nullptr,0,nullptr);
-    // Start maintenance after the work queue is ready. It never blocks IPC
-    // startup and the owning service thread joins it before DLL unmapping.
-    if(!g_gripWorkerThread) {
+    HANDLE gripWorkerThread = CreateThread(nullptr,0,GripUiThread,nullptr,0,nullptr);
+    // Maintenance never delays preview startup. The service joins the worker
+    // before allowing another service instance to reuse the cancellation state.
+    const ExternalDragHandle cleanupThread(gripWorkerThread ?
+        CreateThread(nullptr,0,RecoverExternalDragStages,nullptr,0,nullptr) : nullptr,CloseHandle);
+    if(!gripWorkerThread) {
         Wh_Log(L"Cannot launch broker UI apartment; stopping work queue");
         g_stopBroker.store(true,std::memory_order_release);
     }
     // Never publish the service as healthy before its UI manager exists.
     for (int attempt = 0; attempt < 300 && !g_stopBroker.load() &&
          !g_gripReady.load(); ++attempt) {
-        if(g_gripWorkerThread && WaitForSingleObject(g_gripWorkerThread,0) == WAIT_OBJECT_0) break;
+        if(gripWorkerThread && WaitForSingleObject(gripWorkerThread,0) == WAIT_OBJECT_0) break;
         Sleep(10);
     }
     if(!g_gripReady.load()) {
@@ -11198,6 +12990,10 @@ static int Serve() {
             PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS,
             kMaxPipeReaders + 1,65536,65536,0, & attrs);
         if (pipe == INVALID_HANDLE_VALUE) {Wh_Log(L"CreateNamedPipe failed");break;}
+        if (g_stopBroker.load(std::memory_order_acquire)) {
+            CloseHandle(pipe);
+            break;
+        }
         g_serviceReady.store(true,std::memory_order_release);
         if (ConnectNamedPipe(pipe,nullptr) || GetLastError() == ERROR_PIPE_CONNECTED) {
             if (g_stopBroker.load(std::memory_order_acquire)) { DisconnectNamedPipe(pipe); CloseHandle(pipe); break; }
@@ -11222,7 +13018,7 @@ static int Serve() {
             ReapFinishedPipeReaders();
         } else CloseHandle(pipe);
     }
-    g_cancelForShutdown.store(true,std::memory_order_release);
+    SignalBrokerShutdown();
     // Draining is deliberate: outstanding Shell operations may need time.
     // If they hang, unload stays blocked until the live workers can exit.
     std::vector < HANDLE > readers;
@@ -11247,10 +13043,6 @@ static int Serve() {
         if (g_workEvent) SetEvent(g_workEvent);
         if (g_clipboardEvent) SetEvent(g_clipboardEvent);
     }
-    if (HWND manager = g_gripManager.load()) {
-        PostMessageW(manager, WM_CLOSE, 0, 0);
-        if (g_gripWorkerThread) PostThreadMessageW(GetThreadId(g_gripWorkerThread), WM_QUIT, 0, 0);
-    }
     for (HANDLE & worker:g_workerThreads) {
         if (worker) {
             while(WaitForSingleObject(worker,30000) == WAIT_TIMEOUT)
@@ -11258,11 +13050,11 @@ static int Serve() {
             CloseHandle(worker);worker = nullptr;
         }
     }
-    if (g_gripWorkerThread) {
-        while(WaitForSingleObject(g_gripWorkerThread,30000) == WAIT_TIMEOUT)
-            Wh_Log(L"Shutdown waiting for Broker UI thread");
-        CloseHandle(g_gripWorkerThread);g_gripWorkerThread = nullptr;
+    if (gripWorkerThread) {
+        JoinBrokerThread(gripWorkerThread,L"Broker UI thread");
+        CloseHandle(gripWorkerThread);
     }
+    if (cleanupThread) JoinBrokerThread(cleanupThread.get(),L"external drag cleanup");
     if (g_clipboardThread) {
         while (WaitForSingleObject(g_clipboardThread, 30000) == WAIT_TIMEOUT)
             Wh_Log(L"Shutdown waiting for clipboard STA");
@@ -11286,8 +13078,8 @@ static int Serve() {
 }
 // Service shutdown preserves COM-worker lifetime until callbacks return.
 static void StopService() {
-    g_cancelForShutdown.store(true,std::memory_order_release);
     g_stopBroker.store(true, std::memory_order_release);
+    SignalBrokerShutdown();
     g_stopWorkers.store(true, std::memory_order_release);
     {
         std::lock_guard<std::mutex> lock(g_workMutex);
@@ -11295,10 +13087,6 @@ static void StopService() {
         g_clipboardQueue.clear();
         if (g_workEvent) SetEvent(g_workEvent);
         if (g_clipboardEvent) SetEvent(g_clipboardEvent);
-    }
-    if (HWND manager = g_gripManager.load()) {
-        PostMessageW(manager,WM_CLOSE,0,0);
-        if (g_gripWorkerThread) PostThreadMessageW(GetThreadId(g_gripWorkerThread),WM_QUIT,0,0);
     }
     std::wstring pipe;
     if (SUCCEEDED(ArchiveBrokerPipeName(pipe))) {
@@ -11334,6 +13122,11 @@ static bool StartService(){
         Wh_Log(L"ArchivePreview: another instance still owns the broker; retry pending");
         return false;
     }
+    ArchivePreviewBroker::g_brokerStopEvent = CreateEventW(nullptr,TRUE,FALSE,nullptr);
+    if (!ArchivePreviewBroker::g_brokerStopEvent) {
+        CloseHandle(own);
+        return false;
+    }
     g_brokerOwner.store(own);
     ArchivePreviewBroker::g_cancelForShutdown.store(false,std::memory_order_release);
     ArchivePreviewBroker::g_stopBroker.store(false, std::memory_order_release);
@@ -11343,6 +13136,7 @@ static bool StartService(){
     g_serviceThread = CreateThread(nullptr,0,ServiceThread,own,0,nullptr);
     if(!g_serviceThread){
         g_brokerOwner.store(nullptr);
+        CloseHandle(std::exchange(ArchivePreviewBroker::g_brokerStopEvent,nullptr));
         CloseHandle(own);
         return false;
     }
@@ -11353,6 +13147,10 @@ static bool StartService(){
 }
 static std::atomic_flag g_brokerAttempt = ATOMIC_FLAG_INIT;
 static std::atomic < ULONGLONG > g_brokerLastAttempt{0};
+static void ReleaseServiceHandles() {
+    CloseHandle(std::exchange(g_serviceThread,nullptr));
+    CloseHandle(std::exchange(ArchivePreviewBroker::g_brokerStopEvent,nullptr));
+}
 static void StopService(){
     // Do not race a concurrent MaybeStartService inside an Explorer hook.
     while(g_brokerAttempt.test(std::memory_order_acquire))Sleep(1);
@@ -11362,18 +13160,24 @@ static void StopService(){
     // A timeout is NOT a safe indication that executable code can unload.
     // Windhawk calls FreeLibrary immediately after Wh_ModUninit. Do not return
     // while the service thread, its COM workers or its HWND callbacks are live.
+    ULONGLONG lastLog = GetTickCount64();
     for(;;){
-        const DWORD result = WaitForSingleObject(g_serviceThread,30000);
+        const DWORD result = WaitForSingleObject(g_serviceThread,250);
         if(result == WAIT_OBJECT_0)break;
         if(result == WAIT_TIMEOUT){
-            Wh_Log(L"ArchivePreview unload: waiting for broker/Shell provider to exit");
+            // The first cancellation may have raced the start of ConnectNamedPipe.
             CancelSynchronousIo(g_serviceThread);
+            const ULONGLONG now = GetTickCount64();
+            if (now - lastLog >= 30000) {
+                Wh_Log(L"ArchivePreview unload: waiting for broker/Shell provider to exit");
+                lastLog = now;
+            }
             continue;
         }
         Wh_Log(L"ArchivePreview unload: broker wait failed (Win32=%lu)",GetLastError());
         Sleep(100);
     }
-    CloseHandle(g_serviceThread);g_serviceThread = nullptr;
+    ReleaseServiceHandles();
 }
 
 static void MaybeStartService(){
@@ -11388,7 +13192,7 @@ static void MaybeStartService(){
     // If an earlier broker shutdown has completed, reap the thread handle.
     // The old owner event has already been closed by ServiceThread.
     if(g_serviceThread && WaitForSingleObject(g_serviceThread,0) == WAIT_OBJECT_0){
-        CloseHandle(g_serviceThread);g_serviceThread = nullptr;
+        ReleaseServiceHandles();
     }
     if(!g_serviceThread && !g_stopping.load(std::memory_order_acquire)){
         if(StartService())
@@ -11932,6 +13736,8 @@ class PreviewAdapter final : public IPreviewHandler, public IInitializeWithFile,
         auto * obj = new(std::nothrow) ArchivePreviewHost::ArchiveHandler();
         if(!obj)return E_OUTOFMEMORY;
         archive_ = static_cast < IPreviewHandler *  > (obj);
+        Wh_Log(L"[AP lifecycle] object=adapter event=archive-handler-attached adapter=%p handler=%p",
+            this,archive_);
         return S_OK;
     }
     HRESULT SelectOriginalForNonArchive(LPCWSTR file) {
@@ -12018,12 +13824,19 @@ public:
     explicit PreviewAdapter(IUnknown * native):native_(native){
         ++ArchivePreviewHost::g_objects;
         ++liveAdapters;
+        Wh_Log(L"[AP lifecycle] object=adapter event=created adapter=%p tid=%lu",
+            this,GetCurrentThreadId());
     }
     ~PreviewAdapter(){
+        const ULONGLONG started = GetTickCount64();
+        Wh_Log(L"[AP lifecycle] object=adapter event=final-release-begin adapter=%p tid=%lu handler=%p initialized=%d archive_active=%d",
+            this,GetCurrentThreadId(),archive_,initialized_ ? 1 : 0,archiveSelected_ ? 1 : 0);
         if(archive_)archive_->Release();
         if(originalForFile_)originalForFile_->Release();
         if(native_)native_->Release();
         if(site_)site_->Release();
+        Wh_Log(L"[AP lifecycle] object=adapter event=final-release-end adapter=%p elapsed_ms=%llu",
+            this,GetTickCount64() - started);
         --liveAdapters;
         --ArchivePreviewHost::g_objects;
     }
@@ -12138,14 +13951,16 @@ public:
         return result;
     }
     HRESULT STDMETHODCALLTYPE Unload() override {
-        Wh_Log(L"[AP diag/bridge] Unload pid=%lu adapter=%p archive=%d initialized=%d active=%p",
-            GetCurrentProcessId(),this,archiveSelected_?1:0,initialized_?1:0,Active());
+        const ULONGLONG started = GetTickCount64();
+        Wh_Log(L"[AP lifecycle] object=adapter event=unload-begin adapter=%p tid=%lu handler=%p hwnd=%p initialized=%d archive_active=%d refs=%lu",
+            this,GetCurrentThreadId(),archive_,window_,initialized_ ? 1 : 0,archiveSelected_ ? 1 : 0,
+            refs_.load(std::memory_order_relaxed));
         const HRESULT hr = Call < IPreviewHandler > (IID_IPreviewHandler,
             [ & ](auto * obj){return obj->Unload();});
-        Wh_Log(L"[AP FBX diagnostic] Unload returned adapter=%p archive=%d hr=0x%08lX",
-            this,archiveSelected_?1:0,static_cast<unsigned long>(hr));
         archiveSelected_ = false;
         initialized_ = false;
+        Wh_Log(L"[AP lifecycle] object=adapter event=unload-end adapter=%p elapsed_ms=%llu hr=0x%08lX",
+            this,GetTickCount64() - started,static_cast<unsigned long>(hr));
         return hr;
     }
     HRESULT STDMETHODCALLTYPE SetFocus() override {
@@ -12206,9 +14021,16 @@ public:
     explicit BridgeFactory(IClassFactory * factory):nativeFactory_(factory){
         ++ArchivePreviewHost::g_objects;
         ++liveFactories;
+        Wh_Log(L"[AP lifecycle] object=factory event=created factory=%p tid=%lu",
+            this,GetCurrentThreadId());
     }
     ~BridgeFactory(){
+        const ULONGLONG started = GetTickCount64();
+        Wh_Log(L"[AP lifecycle] object=factory event=final-release-begin factory=%p tid=%lu",
+            this,GetCurrentThreadId());
         if(nativeFactory_)nativeFactory_->Release();
+        Wh_Log(L"[AP lifecycle] object=factory event=final-release-end factory=%p elapsed_ms=%llu",
+            this,GetTickCount64() - started);
         --liveFactories;
         --ArchivePreviewHost::g_objects;
     }
@@ -12311,9 +14133,91 @@ static bool IsPrevhost(){
     const wchar_t * name = wcsrchr(path,L'\\');name = name?name + 1:path;
     return _wcsicmp(name,L"prevhost.exe") == 0;
 }
+
+static bool HasWindowClass(HWND window, PCWSTR expected) {
+    wchar_t name[64]{};
+    return GetClassNameW(window, name, _countof(name)) != 0 &&
+           wcscmp(name, expected) == 0;
+}
+
+static bool IsWindowsPreviewHost(DWORD pid) {
+    HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!process) return false;
+    wchar_t path[MAX_PATH]{};
+    DWORD length = _countof(path);
+    const BOOL found = QueryFullProcessImageNameW(process, 0, path, &length);
+    CloseHandle(process);
+    if (!found) return false;
+
+    wchar_t windows[MAX_PATH]{};
+    const UINT prefixLength = GetWindowsDirectoryW(windows, _countof(windows));
+    return prefixLength > 0 && prefixLength < _countof(windows) &&
+           length > prefixLength &&
+           _wcsnicmp(path, windows, prefixLength) == 0 &&
+           _wcsicmp(path + prefixLength, L"\\System32\\prevhost.exe") == 0;
+}
+
+static BOOL CALLBACK FindArchivePreviewChild(HWND child, LPARAM data) {
+    if (!HasWindowClass(child, ArchivePreviewHost::kWindowClass)) return TRUE;
+    DWORD pid = 0;
+    if (!GetWindowThreadProcessId(child, &pid) || !IsWindowsPreviewHost(pid))
+        return TRUE;
+    *reinterpret_cast<HWND*>(data) = child;
+    return FALSE;
+}
+
+static BOOL CALLBACK CloseExplorerWindowWithPreview(HWND window, LPARAM data) {
+    DWORD pid = 0;
+    GetWindowThreadProcessId(window, &pid);
+    if (pid != GetCurrentProcessId() ||
+        (!HasWindowClass(window, L"CabinetWClass") &&
+         !HasWindowClass(window, L"ExploreWClass")))
+        return TRUE;
+
+    HWND preview = nullptr;
+    EnumChildWindows(window, FindArchivePreviewChild, reinterpret_cast<LPARAM>(&preview));
+    if (!preview || GetAncestor(preview, GA_ROOT) != window) return TRUE;
+
+    // Let Explorer handle the normal close on its UI thread.
+    if (PostMessageW(window, WM_CLOSE, 0, 0)) {
+        ++*reinterpret_cast<unsigned*>(data);
+        Wh_Log(L"[AP lifecycle] phase=preview-window-close-queued window=%p", window);
+    } else {
+        Wh_Log(L"[AP lifecycle] phase=preview-window-close-failed window=%p win32=%lu",
+               window, GetLastError());
+    }
+    return TRUE;
+}
+
+static void RequestArchivePreviewWindowClosure() {
+    unsigned queued = 0;
+    EnumWindows(CloseExplorerWindowWithPreview, reinterpret_cast<LPARAM>(&queued));
+    Wh_Log(L"[AP lifecycle] phase=preview-window-close-scan queued=%u", queued);
+}
+
+static DWORD WindowsBuildForLog() {
+    using GetVersionFn = LONG (NTAPI*)(OSVERSIONINFOW*);
+    const HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+    if (!ntdll) return 0;
+    const auto getVersion = reinterpret_cast<GetVersionFn>(GetProcAddress(ntdll,"RtlGetVersion"));
+    OSVERSIONINFOW version{};
+    version.dwOSVersionInfoSize = sizeof(version);
+    return getVersion && getVersion(&version) == 0 ? version.dwBuildNumber : 0;
+}
+static std::atomic<ULONGLONG> shutdownRequestedAt{0};
+static void LogShutdownState(PCWSTR phase, ULONGLONG elapsed) {
+    Wh_Log(L"[AP lifecycle] phase=%s elapsed_ms=%llu tid=%lu objects=%ld adapters=%ld archive_handlers=%ld factories=%ld drag_interfaces=%u",
+        phase,elapsed,GetCurrentThreadId(),ArchivePreviewHost::g_objects.load(),
+        ArchivePreviewBridge::liveAdapters.load(),ArchivePreviewHost::g_liveArchiveHandlers.load(),
+        ArchivePreviewBridge::liveFactories.load(),ArchivePreviewBroker::g_externalDragInterfaces.load());
+}
 BOOL Wh_ModInit(){
     ArchivePreviewOptions::Load();
-    Wh_Log(L"[AP diag] build=1.1.0-columns-dark-1 pid=%lu",GetCurrentProcessId());
+    ArchivePreviewDiagnostics::Load();
+    ArchivePreviewColumns::Load();
+    Wh_Log(L"[AP lifecycle] phase=init version=%s pid=%lu windows_build=%lu mod_arch=x64 windows_ui_lang=0x%04X mod_lang=%s",
+        WH_MOD_VERSION,GetCurrentProcessId(),WindowsBuildForLog(),
+        static_cast<unsigned>(GetUserDefaultUILanguage()),ArchivePreviewText::LanguageTag());
     HMODULE module{};
     if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
         GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -12342,6 +14246,9 @@ BOOL Wh_ModInit(){
 }
 void Wh_ModSettingsChanged(){
     ArchivePreviewOptions::Load();
+    ArchivePreviewDiagnostics::Load();
+    ArchivePreviewColumns::Load(true);
+    Wh_Log(L"[AP lifecycle] phase=settings-changed mod_lang=%s",ArchivePreviewText::LanguageTag());
     if(IsExplorer()){
         ArchivePreviewVirtual::RefreshArchiveProgIds();
         HWND manager = ArchivePreviewBroker::g_gripManager.load();
@@ -12358,12 +14265,10 @@ void Wh_ModBeforeUninit(){
     ArchivePreviewRuntime::g_stopping.store(true,std::memory_order_release);
     ArchivePreviewVirtual::g_stopping.store(true,std::memory_order_release);
     ArchivePreviewBridge::stopping.store(true,std::memory_order_release);
-    if(IsPrevhost()){
-        Wh_Log(L"[AP bridge/prevhost] before unload: live COM adapters=%ld factories=%ld totalObjects=%ld",
-            ArchivePreviewBridge::liveAdapters.load(),
-            ArchivePreviewBridge::liveFactories.load(),
-            ArchivePreviewHost::g_objects.load());
-    }
+    shutdownRequestedAt.store(GetTickCount64(),std::memory_order_release);
+    LogShutdownState(L"before-uninit",0);
+    if (ArchivePreviewOptions::closeExplorerWindowOnUnload.load() && IsExplorer())
+        RequestArchivePreviewWindowClosure();
 }
 // Windhawk performs FreeLibrary after this callback returns. Never pin the
 // module or return while COM can still invoke an object/factory vtable in it.
@@ -12372,24 +14277,20 @@ void Wh_ModBeforeUninit(){
 static void WaitForPreviewComRelease(){
     const ULONGLONG started = GetTickCount64();
     ULONGLONG lastLog = started;
+    LogShutdownState(L"com-wait-begin",0);
     for(;;){
         const long objects = ArchivePreviewHost::g_objects.load(std::memory_order_acquire);
         if(objects == 0)break;
         const ULONGLONG now = GetTickCount64();
         if(now - lastLog >= 5000){
-            Wh_Log(L"ArchivePreview unload: waiting for Preview Host COM references "
-                   L"(objects=%ld adapters=%ld factories=%ld; elapsed=%llu ms). "
-                   L"Close the Explorer preview window to allow shutdown.",
-                objects,
-                ArchivePreviewBridge::liveAdapters.load(std::memory_order_acquire),
-                ArchivePreviewBridge::liveFactories.load(std::memory_order_acquire),
-                now - started);
+            LogShutdownState(L"com-wait",now - started);
             lastLog = now;
         }
         // Do not force Release() of a COM reference owned by the host.
         // This may block indefinitely if Windows never releases its objects.
         Sleep(100);
     }
+    LogShutdownState(L"com-drained",GetTickCount64() - started);
 }
 // The COM object count alone is not enough if a Windows HWND outlives its
 // owner. A class still registered with one of our window procs must not be
@@ -12400,6 +14301,8 @@ static void UnregisterPreviewClassesSafely(){
         ArchivePreviewHost::kWindowClass,
     };
     for(const wchar_t * name:classes){
+        const ULONGLONG started = GetTickCount64();
+        Wh_Log(L"[AP lifecycle] phase=unregister-window-class-begin class=%s",name);
         ULONGLONG lastLog = 0;
         for(;;){
             if(UnregisterClassW(name,ArchivePreviewHost::g_module))break;
@@ -12407,24 +14310,32 @@ static void UnregisterPreviewClassesSafely(){
             if(error == ERROR_CLASS_DOES_NOT_EXIST)break;
             const ULONGLONG now = GetTickCount64();
             if(lastLog == 0 || now - lastLog >= 5000){
-                Wh_Log(L"ArchivePreview unload: waiting to unregister HWND class %s "
-                       L"(Win32=%lu); live window callbacks may remain",name,error);
+                Wh_Log(L"[AP lifecycle] phase=unregister-window-class-wait class=%s win32=%lu elapsed_ms=%llu",
+                    name,error,now - started);
                 lastLog = now;
             }
             Sleep(100);
         }
+        Wh_Log(L"[AP lifecycle] phase=unregister-window-class-end class=%s elapsed_ms=%llu",
+            name,GetTickCount64() - started);
     }
 }
 void Wh_ModUninit(){
+    const ULONGLONG started = GetTickCount64();
+    const ULONGLONG requested = shutdownRequestedAt.load(std::memory_order_acquire);
     ArchivePreviewHost::g_hostShutdown.store(true,std::memory_order_release);
     ArchivePreviewRuntime::g_stopping.store(true,std::memory_order_release);
     ArchivePreviewVirtual::g_stopping.store(true,std::memory_order_release);
     ArchivePreviewBridge::stopping.store(true,std::memory_order_release);
+    LogShutdownState(L"uninit-begin",requested && requested <= started ? started - requested : 0);
     if(IsExplorer()){
         Wh_Log(L"[AP bridge/explorer] shutdown virtualQueries=%u regQueries=%u",
             ArchivePreviewVirtual::g_queryVirtualHits.load(),
             ArchivePreviewVirtual::g_registryHits.load());
+        const ULONGLONG brokerStarted = GetTickCount64();
+        LogShutdownState(L"broker-stop-begin",0);
         ArchivePreviewRuntime::StopService();
+        LogShutdownState(L"broker-stopped",GetTickCount64() - brokerStarted);
     }
     if(IsPrevhost()){
         Wh_Log(L"[AP bridge/prevhost] shutdown factories=%u objects=%u archives=%u",
@@ -12436,17 +14347,11 @@ void Wh_ModUninit(){
     // The COM object references below are a separate issue: prevhost may own
     // those references and the DLL cannot release them unilaterally.
     ArchivePreviewWorkerLifetime::JoinAll();
-    if(IsPrevhost()){
-        Wh_Log(L"[AP bridge/prevhost] after worker join: live COM adapters=%ld factories=%ld totalObjects=%ld",
-            ArchivePreviewBridge::liveAdapters.load(),
-            ArchivePreviewBridge::liveFactories.load(),
-            ArchivePreviewHost::g_objects.load());
-    }
+    ArchivePreviewIcons::LogStats(L"shutdown");
     // Once the last host object and factory have been released, no preview
     // callback can safely start; our COM creation paths were stopped in
     // Wh_ModBeforeUninit. Apply the same safety check in every injected process.
     WaitForPreviewComRelease();
     UnregisterPreviewClassesSafely();
-    if(IsPrevhost())
-        Wh_Log(L"[AP bridge/prevhost] COM references released; window classes unregistered; safe to unload");
+    LogShutdownState(L"uninit-end",GetTickCount64() - started);
 }
